@@ -1,0 +1,25 @@
+[26-Mar-2011 17:49:28] MDB2 Error: not found (-4): no RDBMS driver specified
+[26-Mar-2011 17:49:28 +0000]: DB Error: no RDBMS driver specified in C:\ZPanel\panel\apps\webmail2\program\include\rcube_mdb2.php on line 101 (GET /apps/webmail2/)
+[26-Mar-2011 17:49:28] MDB2 Error: not found (-4): no RDBMS driver specified
+[26-Mar-2011 17:49:28 +0000]: DB Error: no RDBMS driver specified in C:\ZPanel\panel\apps\webmail2\program\include\rcube_mdb2.php on line 101 (GET /apps/webmail2/)
+[26-Mar-2011 17:49:28] MDB2 Error: not found (-4): no RDBMS driver specified
+[26-Mar-2011 17:49:28 +0000]: DB Error: no RDBMS driver specified in C:\ZPanel\panel\apps\webmail2\program\include\rcube_mdb2.php on line 101 (GET /apps/webmail2/)
+[26-Mar-2011 17:59:53 +0000]: IMAP Error: Login failed for ballen@test.com from 127.0.0.1. Could not connect to localhost:143: A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond.
+ in C:\ZPanel\panel\apps\webmail2\program\include\rcube_imap.php on line 192 (POST /apps/webmail2/?_task=login&_action=login)
+[26-Mar-2011 18:02:58] MDB2 Error: no such field (-19): _doQuery: [Error message: Could not execute statement]
+[Last executed query: PREPARE mdb2_statement_mysql_7099e2a7b18fb6a2f300e04530e617febc8b6cfc0 FROM 'INSERT INTO identities (changed, `email`, `name`, `standard`, user_id) VALUES (now(), ?, ?, ?, ?)']
+[Native code: 1054]
+[Native message: Unknown column 'changed' in 'field list']
+
+[26-Mar-2011 18:02:58 +0000]: DB Error: _doQuery: [Error message: Could not execute statement]
+[Last executed query: PREPARE mdb2_statement_mysql_7099e2a7b18fb6a2f300e04530e617febc8b6cfc0 FROM 'INSERT INTO identities (changed, `email`, `name`, `standard`, user_id) VALUES (now(), ?, ?, ?, ?)']
+[Native code: 1054]
+[Native message: Unknown column 'changed' in 'field list']
+ in C:\ZPanel\panel\apps\webmail2\program\include\rcube_mdb2.php on line 268 (POST /apps/webmail2/?_task=login&_action=login)
+[26-Mar-2011 18:03:42 +0000]: IMAP Error: Login failed for ballen@test.com from 127.0.0.1. LOGIN: Invalid user name or password. in C:\ZPanel\panel\apps\webmail2\program\include\rcube_imap.php on line 192 (POST /apps/webmail2/?_task=login&_action=login)
+[26-Mar-2011 18:04:32] PHP Warning:  fsockopen() [<a href='function.fsockopen'>function.fsockopen</a>]: unable to connect to ssl://www.google.com:443 (Unable to find the socket transport &quot;ssl&quot; - did you forget to enable it when you configured PHP?) in C:\ZPanel\panel\apps\webmail2\program\steps\utils\spell_googie.inc on line 46
+[26-Mar-2011 18:05:34] PHP Warning:  include(spell_google.inc) [<a href='function.include'>function.include</a>]: failed to open stream: No such file or directory in C:\ZPanel\panel\apps\webmail2\program\steps\utils\spell.inc on line 27
+[26-Mar-2011 18:05:34] PHP Warning:  include() [<a href='function.include'>function.include</a>]: Failed opening 'spell_google.inc' for inclusion (include_path='C:/ZPanel/panel/apps/webmail2/;C:/ZPanel/panel/apps/webmail2/program;C:/ZPanel/panel/apps/webmail2/program/lib;C:/ZPanel/panel/apps/webmail2/program/include;.;C:\ZPanel\bin\php\pear\') in C:\ZPanel\panel\apps\webmail2\program\steps\utils\spell.inc on line 27
+[26-Mar-2011 18:05:58] PHP Warning:  fsockopen() [<a href='function.fsockopen'>function.fsockopen</a>]: unable to connect to ssl://www.google.com:443 (Unable to find the socket transport &quot;ssl&quot; - did you forget to enable it when you configured PHP?) in C:\ZPanel\panel\apps\webmail2\program\steps\utils\spell_googie.inc on line 46
+[26-Mar-2011 18:06:06] PHP Warning:  fsockopen() [<a href='function.fsockopen'>function.fsockopen</a>]: unable to connect to ssl://www.google.com:443 (Unable to find the socket transport &quot;ssl&quot; - did you forget to enable it when you configured PHP?) in C:\ZPanel\panel\apps\webmail2\program\steps\utils\spell_googie.inc on line 46
+[26-Mar-2011 18:06:14] PHP Warning:  fsockopen() [<a href='function.fsockopen'>function.fsockopen</a>]: unable to connect to ssl://www.google.com:443 (Unable to find the socket transport &quot;ssl&quot; - did you forget to enable it when you configured PHP?) in C:\ZPanel\panel\apps\webmail2\program\steps\utils\spell_googie.inc on line 46
