@@ -1,0 +1,197 @@
+body {
+	background-color: #CCCCCC;
+	margin-left: 0px;
+	margin-top: 0px;
+	margin-right: 0px;
+	margin-bottom: 0px;
+}
+
+/** ZPANEL SPECIFIC CSS ATTRIBUTES!! **/
+.zmodule{
+	text-align:center;
+}
+.zmodule td{
+	padding:8px;
+	vertical-align:top;
+}
+.zform{
+	background-color: #FFF;
+	border: 1px #999;
+}
+.zform td{
+	background-color: #F1F1F1;
+}
+.zform th{
+	background-color: #CCC;
+	font-weight:bold;
+	text-align: left;
+}
+.zgrid{
+	background-color: #FFF;
+	border: 1px #999;
+}
+.zgrid td{
+	background-color: #F1F1F1;
+}
+.zgrid th{
+	background-color: #CCC;
+	font-weight:bold;
+	text-align: left;
+}
+.zannouce{
+	background-color: #FCC;
+	border: 1px #999;
+	font-weight:normal;
+	text-align: left;
+	padding:10px;
+	color:#933;
+}
+
+/** THEME RELATED CSS ATTRIBUTES!! **/
+
+.copypower {
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+	font-size: 8pt;
+	color: #333333;
+	border-top-width: 1px;
+	border-right-width: 1px;
+	border-bottom-width: 1px;
+	border-left-width: 1px;
+	border-top-style: solid;
+	border-right-style: none;
+	border-bottom-style: none;
+	border-left-style: none;
+	border-top-color: #888888;
+	border-right-color: #888888;
+	border-bottom-color: #888888;
+	border-left-color: #888888;
+	padding: 10px;
+}
+.copyowner a {
+	color: #006699;
+	text-decoration:none;
+}
+.copyowner a:link {
+	color: #006699;
+	text-decoration:none;
+}
+.copyowner a:hover {
+	color: #006699;
+	text-decoration:none;
+}
+.copyowner a:active {
+	color: #006699;
+	text-decoration:none;
+}
+.main {
+	padding: 10px;
+	background-color: #FFFFFF;
+}
+.navbar {
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+	font-size: 8pt;
+	color: #FFFFFF;
+	background-color: #333333;
+	padding: 5px;
+	border-top-width: 1px;
+	border-right-width: 1px;
+	border-bottom-width: 1px;
+	border-left-width: 1px;
+	border-top-style: solid;
+	border-right-style: none;
+	border-bottom-style: solid;
+	border-left-style: none;
+	border-top-color: #66CC00;
+	border-right-color: #66CC00;
+	border-bottom-color: #66CC00;
+	border-left-color: #66CC00;
+}
+.navbar a {
+	color:#FFFFFF;
+	text-decoration: none;
+}
+.navbar a:visited {
+	color:#FFFFFF;
+	text-decoration: none;
+}
+.navbar a:hover {
+	color:#FFFFFF;
+	font-weight:bold;
+}
+.topbar {
+	background-color: #66CC00;
+	background-image: url(zp_gradient4.jpg);
+	background-repeat: repeat-x;
+	background-position: left top;
+}
+.topbarlinks {
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+	font-size: 8pt;
+	color: #FFFFFF;
+	padding-top: 5px;
+	padding-right: 5px;
+}
+.topbarlinks a {
+	color:#FFFFFF;
+	text-decoration: none;
+}
+.topbarlinks a:visited {
+	color:#FFFFFF;
+	text-decoration: none;
+}
+.topbarlinks a:hover {
+	color:#FFFFFF;
+	text-decoration: underline;
+}
+.mainlayout {
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+	font-size: 9pt;
+	color: #333333;
+}
+.mainlayout h1 {
+	font-family: Georgia, "Times New Roman", Times, serif;
+	font-size: 24pt;
+	color: #66CC00;
+	font-weight: lighter;
+}
+.mainlayout h2 {
+	font-family: Georgia, "Times New Roman", Times, serif;
+	font-size: 14pt;
+	color: #999999;
+	font-weight: lighter;
+}
+.mainlayout a {
+	color:#006699;
+	text-decoration: none;
+}
+.mainlayout a:visited {
+	color:#006699;
+	text-decoration: none;
+}
+.mainlayout a:hover {
+	color:#006699;
+	text-decoration: underline;
+}
+.statsdata {
+	font-size: 8pt;
+	background-color: #F1F1F1;
+	padding: 5px;
+	padding-left: 15px;
+}
+.mainlayout h3 {
+	font-family: Georgia, "Times New Roman", Times, serif;
+	font-size: 14pt;
+	color: #676767;
+	font-weight: lighter;
+	border-top-width: 2px;
+	border-right-width: 2px;
+	border-bottom-width: 2px;
+	border-left-width: 2px;
+	border-bottom-style: solid;
+	border-top-color: #cccccc;
+	border-right-color: #cccccc;
+	border-bottom-color: #cccccc;
+	border-left-color: #cccccc;
+	margin-left: 5px;
+	margin-right: 20px;
+}

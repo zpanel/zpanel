@@ -1,0 +1,34 @@
+/***********************************************************************
+* Module name:            ZPanel Version Checker                       *
+* Original coding by:     (author unknown at this time)                *
+* Module modified by:     T Gates                                      *
+* Module website:         http://www.zpanel.co.uk                      *
+* Module author email:    tgates@zpanel.co.uk                          *
+* Module first released:  Nov. 13, 2010                                *
+* Module version:         v2.4 (Mar. 29, 2011)                         *
+* NOTICE: You may edit these files as you wish, but this notice MUST   *
+* remain in ALL files associated with this package!                    *
+***********************************************************************/
+LANGUAGE ADDITIONS FOR ZPANEL V6
+
+## START Version Checker Language ##
+$lang['vc01'] = 'ZPanel Version Checker';
+$lang['vc02'] = 'Current version is';
+$lang['vc03'] = 'Your version is';
+$lang['vc04'] = 'Download latest version HERE';
+$lang['vc05'] = 'Announcements';
+$lang['vc06'] = 'No Announcements at this time';
+$lang['vc07'] = 'The ZPanel Team';
+$lang['vc08'] = 'No team listed at this time';
+$lang['vc09'] = 'CAUTION: You are using an ALPHA/BETA version!';
+$lang['vc10'] = 'Name';
+$lang['vc11'] = 'Forum Name';
+$lang['vc12'] = 'Job Title';
+$lang['vc13'] = 'Your ZPanel version is up-to-date';
+$lang['vc14'] = 'Change Log';
+$lang['vc15'] = 'Expand';
+$lang['vc16'] = 'Collapse';
+$lang['vc17'] = 'Special Thanks';
+$lang['vc18'] = 'Site URL';
+$lang['vc19'] = 'Click to Submit a Bug Report';
+## END Version Checker Language ##
