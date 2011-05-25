@@ -181,8 +181,8 @@
                             </tbody></table></td>
                 </tr>
                 <tr class="copypower">
-                    <td class="copypower">Copyright �
-                        2004-2010 <a href="http://www.zpanel.co.uk/" target="_blank">ZPanel Project</a>.
+                    <td class="copypower">Copyright &copy;
+                        2004-2010 <a href="http://www.zpanelcp.com/" target="_blank">ZPanel Project</a>.
                         <br></td>
                 </tr>
             </tbody></table>
