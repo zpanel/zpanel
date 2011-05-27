@@ -313,6 +313,19 @@ function GetServerUptime() {
         $hours = CheckForNullValue($hours != 1, $hours . ' hours', $hours . ' hour');
         $minutes = CheckForNullValue($minutes != 1, $minutes . ' minutes', $minutes . ' minute');
         $fretval = $days . ", " . $hours . ", " . $minutes . "";
+    } elseif (ShowServerPlatform() == "FreeBSD") {
+		$uptime = explode( " ", exec("/sbin/sysctl -n kern.boottime") );
+		$uptime = str_replace( ",", "", $uptime[3]);
+		$uptime = time() - $uptime;
+		$min   = $uptime / 60;
+		$hours = $min / 60;
+		$days  = floor( $hours / 24 );
+		$hours = floor( $hours - ($days * 24) );
+		$minutes   = floor( $min - ($days * 60 * 24) - ($hours * 60) );
+        $days = CheckForNullValue($days != 1, $days . ' days', $days . ' day');
+        $hours = CheckForNullValue($hours != 1, $hours . ' hours', $hours . ' hour');
+        $minutes = CheckForNullValue($minutes != 1, $minutes . ' minutes', $minutes . ' minute');
+        $fretval = $days . ", " . $hours . ", " . $minutes . "";
     } else {
         $fretval = "Unsupported Operating System";
     }
