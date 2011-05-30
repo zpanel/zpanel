@@ -61,7 +61,8 @@ sudo chmod -R g+s /var/zpanel
 sudo chmod -R 777 /etc/zpanel/
 sudo chmod -R 777 /var/zpanel/
 
-# Restart Apache...
+# Restart ProFTPd and Apache...
+sudo /etc/init.d/proftpd restart
 sudo /etc/init.d/apache2 restart
 
 clear
