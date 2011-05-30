@@ -30,7 +30,7 @@ echo "# Include the ZPanel HTTPD managed configuration file." >> ${apache_config
 echo "Include /etc/zpanel/conf/httpd-ubuntu.conf" >> ${apache_config}
 
 # Add 'include' to the ProFTPd configuration file..
-echo "# Include the ZPanel ProFTPd managed configuration file." >> ${proftpd_config}
+echo "# Include the ZPanel ProFTPd managed configuration file." > ${proftpd_config}
 echo "Include /etc/zpanel/conf/proftpd-ubuntu.conf" >> ${proftpd_config}
 
 # Add exception to Sudoers file to enable zsudo execution for restarting Apache etc.
