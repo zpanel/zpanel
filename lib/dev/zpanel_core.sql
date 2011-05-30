@@ -21,6 +21,9 @@ SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 
 -- --------------------------------------------------------
 
+CREATE DATABASE `zpanel_core`;
+USE `zpanel_core`;
+
 --
 -- Table structure for table `z_accounts`
 --
@@ -103,7 +106,7 @@ CREATE TABLE IF NOT EXISTS `z_cronjobs` (
   `ct_created_ts` int(30) DEFAULT NULL,
   `ct_deleted_ts` int(30) DEFAULT NULL,
   PRIMARY KEY (`ct_id_pk`)
-) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=3 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
 --
 -- Dumping data for table `z_cronjobs`
@@ -185,7 +188,7 @@ CREATE TABLE IF NOT EXISTS `z_forwarders` (
   `fw_created_ts` int(30) DEFAULT NULL,
   `fw_deleted_ts` int(30) DEFAULT NULL,
   PRIMARY KEY (`fw_id_pk`)
-) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=9 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
 --
 -- Dumping data for table `z_forwarders`
@@ -207,7 +210,7 @@ CREATE TABLE IF NOT EXISTS `z_ftpaccounts` (
   `ft_created_ts` int(6) DEFAULT NULL,
   `ft_deleted_ts` int(6) DEFAULT NULL,
   PRIMARY KEY (`ft_id_pk`)
-) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=17 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
 --
 -- Dumping data for table `z_ftpaccounts`
@@ -284,25 +287,11 @@ CREATE TABLE IF NOT EXISTS `z_logs` (
   `lg_ipaddress_vc` varchar(15) DEFAULT NULL,
   `lg_details_tx` text,
   PRIMARY KEY (`lg_id_pk`)
-) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=74572 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
 --
 -- Dumping data for table `z_logs`
 --
-
-INSERT INTO `z_logs` (`lg_id_pk`, `lg_acc_fk`, `lg_when_ts`, `lg_ipaddress_vc`, `lg_details_tx`) VALUES
-(74570, 2, 1305400687, '127.0.0.1', 'Was unable to read the folders in (/var/zpanel/homes/zadmin/), please ensure this folder exists.'),
-(74569, 0, 1305400670, '127.0.0.1', 'Unable to select database, database (zpanel_core) appears to not exsist!'),
-(74568, 2, 1305400662, '127.0.0.1', 'Was unable to read the folders in (/var/zpanel/homes/zadmin/), please ensure this folder exists.'),
-(74567, 2, 1305400652, '127.0.0.1', 'Was unable to read the folders in (/var/zpanel/homes/zadmin/), please ensure this folder exists.'),
-(74566, 2, 1305400050, '127.0.0.1', 'User has logged into ZPanel.'),
-(74565, 2, 1305393308, '127.0.0.1', 'Was unable to read the folders in (/var/zpanel/homes/zadmin/), please ensure this folder exists.'),
-(74564, 2, 1305391894, '127.0.0.1', 'User has logged into ZPanel.'),
-(74563, 2, 1305387825, '127.0.0.1', 'User has logged into ZPanel.'),
-(74562, 2, 1305360750, '127.0.0.1', 'Was unable to read the folders in (/var/zpanel/homes/zadmin/), please ensure this folder exists.'),
-(74561, 2, 1305360002, '127.0.0.1', 'Was unable to read the folders in (/var/zpanel/homes/zadmin/), please ensure this folder exists.'),
-(74560, 2, 1305359989, '127.0.0.1', 'User has logged into ZPanel.'),
-(74571, 0, 1305401188, '127.0.0.1', 'Unable to select database, database (zpanel_core) appears to not exsist!');
 
 -- --------------------------------------------------------
 
@@ -317,7 +306,7 @@ CREATE TABLE IF NOT EXISTS `z_mailboxes` (
   `mb_created_ts` int(30) DEFAULT NULL,
   `mb_deleted_ts` int(30) DEFAULT NULL,
   PRIMARY KEY (`mb_id_pk`)
-) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=5 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
 --
 -- Dumping data for table `z_mailboxes`
@@ -338,7 +327,7 @@ CREATE TABLE IF NOT EXISTS `z_mysql` (
   `my_created_ts` int(30) DEFAULT NULL,
   `my_deleted_ts` int(30) DEFAULT NULL,
   PRIMARY KEY (`my_id_pk`)
-) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=36 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
 --
 -- Dumping data for table `z_mysql`
@@ -360,7 +349,7 @@ CREATE TABLE IF NOT EXISTS `z_packages` (
   `pk_created_ts` int(30) DEFAULT NULL,
   `pk_deleted_ts` int(30) DEFAULT NULL,
   PRIMARY KEY (`pk_id_pk`)
-) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=9 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
 --
 -- Dumping data for table `z_packages`
@@ -382,7 +371,7 @@ CREATE TABLE IF NOT EXISTS `z_permissions` (
   `pr_admin_in` int(1) DEFAULT '0',
   `pr_reseller_in` int(1) DEFAULT '0',
   PRIMARY KEY (`pr_id_pk`)
-) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=9 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=4 ;
 
 --
 -- Dumping data for table `z_permissions`
@@ -408,7 +397,7 @@ CREATE TABLE IF NOT EXISTS `z_personal` (
   `ap_phone_vc` varchar(50) DEFAULT NULL,
   `ap_language_vc` varchar(45) NOT NULL,
   PRIMARY KEY (`ap_id_pk`)
-) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=10 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=4 ;
 
 --
 -- Dumping data for table `z_personal`
@@ -439,7 +428,7 @@ CREATE TABLE IF NOT EXISTS `z_quotas` (
   `qt_diskspace_bi` bigint(20) DEFAULT '0',
   `qt_bandwidth_bi` bigint(20) DEFAULT '0',
   PRIMARY KEY (`qt_id_pk`)
-) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=9 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=3 ;
 
 --
 -- Dumping data for table `z_quotas`
@@ -507,23 +496,23 @@ INSERT INTO `z_settings` (`st_id_pk`, `st_name_vc`, `st_value_tx`, `st_desc_tx`,
 (21, 'php_exer', 'php', 'The full system path to the PHP executable.', '375', 'text', NULL, 0),
 (22, 'hosted_dir', '/var/zpanel/hostdata/', 'The full system path to the file storage area for user storage space.', '376', 'text', NULL, 1),
 (23, 'apache_vhost', '/etc/zpanel/conf/httpd-vhosts.conf', 'The full system patch and filename of the Apache VHOST configuration name.', '377', 'text', NULL, 1),
-(24, 'disable_hostsen', 'false', 'For Windows Servers only, this will add a host''s entry on to the server.', '378', 'text', NULL, 1),
-(25, 'logfile_dir', 'C:/ZPanel/Logs/domains/', 'Full system path to the Apache log files.', '379', 'text', NULL, 1),
+(24, 'disable_hostsen', 'true', 'For Windows Servers only, this will add a host''s entry on to the server.', '378', 'text', NULL, 1),
+(25, 'logfile_dir', '/var/zpanel/logs/domains/', 'Full system path to the Apache log files.', '379', 'text', NULL, 1),
 (26, 'directory_index', 'DirectoryIndex index.html index.htm index.php index.asp index.aspx index.jsp index.jspa index.shtml index.shtm', 'Apache directory index line as used the Apache vhost file.', '380', 'text', NULL, 0),
 (27, 'php_handler', 'AddType application/x-httpd-php .php\nAddType application/x-httpd-php .php3\nphp_admin_value suhosin.executor.func.blacklist "passthru, show_source, shell_exec, system, pcntl_exec, popen, pclose, proc_open, proc_nice, proc_terminate, proc_get_status, proc_close, leak, apache_child_terminate, posix_kill, posix_mkfifo, posix_setpgid, posix_setsid, posix_setuid, escapeshellcmd, escapeshellarg"\r\n', 'The PHP Handler.', '381', 'text', NULL, 0),
 (28, 'cgi_handler', 'AddHandler cgi-script .cgi .pl', 'The CGI Handler', '382', 'text', NULL, 0),
 (29, 'vhost_extra', 'ServerSignature Off', 'Extra directives for all apache vhost''s.', '383', 'text', NULL, 0),
 (30, 'static_dir', '/etc/zpanel/static/', 'The ZPanel static directory, used for storing welcome pages etc. etc.', '384', 'text', NULL, 0),
-(31, 'webalizer_reps', 'C:/ZPanel/panel/apps/webalizer/', 'The webalizer reports directory.', '385', 'text', NULL, 1),
+(31, 'webalizer_reps', '/etc/zpanel/apps/webalizer/', 'The webalizer reports directory.', '385', 'text', NULL, 1),
 (32, 'parking_path', '/etc/zpanel/static/parking/', 'The path to the parking website, this will be used by all clients.', '386', 'text', NULL, 0),
-(33, 'hmailserver_db', 'N/A', 'The MySQL database name of the hMailServer.', '387', 'text', NULL, 1),
+(33, 'hmailserver_db', '', 'The MySQL database name of the hMailServer.', '387', 'text', NULL, 1),
 (34, 'hmailserver_et', '2', 'hMailServer account encryption method (2 = Default)', NULL, 'text', NULL, 0),
 (35, 'hmailserver_mms', '200', 'The default mailbox storage limit in megabytes. (Default 100MB)', '388', 'text', NULL, 1),
-(36, 'filezilla_root', 'C:/ZPanel/bin/filezilla/', 'The installation directory of where FileZilla server is installed in. (with a trailing slash ''/'')', NULL, 'text', NULL, 0),
+(36, 'filezilla_root', '/etc/zpanel/conf/ftp/', 'The installation directory of where FileZilla server is installed in. (with a trailing slash ''/'')', NULL, 'text', NULL, 0),
 (37, 'webalizer_exe', 'C:/ZPanel/bin/webalizer/Webalizer.exe', 'The full path to the webalizer executable.', NULL, 'text', NULL, 0),
 (38, 'current_month', '201103', 'The current month number (YYYYMM)', NULL, 'text', NULL, 0),
 (39, 'temp_dir', '/etc/zpanel/temp/', 'The path to the ZPanel temporary directory (with trailing slash)', '389', 'text', NULL, 1),
-(40, '7z_exe', 'C:/ZPanel/bin/7zip/7z.exe', 'The path and filename of the 7z compression tool.', NULL, 'text', NULL, 0),
+(40, '7z_exe', 'zip', 'The path and filename of the 7z compression tool.', NULL, 'text', NULL, 0),
 (41, 'mysqldump_exe', 'mysqldump', NULL, NULL, 'text', NULL, 0),
 (42, 'login_url', 'http://localhost/zpanel/login.php', 'Caches the last know login URL, Speeds up control panel access times.', NULL, 'text', NULL, 0),
 (43, 'server_admin', 'ZPanel Developer', 'The name of the server admin', NULL, 'text', NULL, 0),

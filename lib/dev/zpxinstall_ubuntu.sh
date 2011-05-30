@@ -1,10 +1,8 @@
 #!/bin/sh
 #
-# Ubuntu Linux Installation Script for ZpanelX (Development Enviroment)
+# Ubuntu Linux Installation Script for Zpanel 6.1.0 (Development Enviroment)
 # Script written by Bobby Allen (ballen@zpanel.co.uk) 14/05/2011
 #
-# YOU MUST HAVE ACL INSTALLED AND SETUP ON YOUR PARTITION FIRST BEFORE INSTALLING
-# FOR INFO READ: http://forge.zpanel.co.uk/bugs/view.php?id=3
 #
 
 # Apache HTTPD configuration file path
@@ -12,6 +10,16 @@ apache_config=/etc/apache2/apache2.conf
 
 # ProFTPd configuration file path
 proftpd_config=/etc/proftpd/proftpd.conf
+
+clear
+echo "ZPANEL ONLINE INSTALLER (by Bobby Allen)"
+echo "========================================"
+echo ""
+echo "Welcome to the online installer for ZPanel, this will download the latest source over SVN and install it for you."
+echo "This script has only been tested on Ubuntu Linux, It will attempt to download and install all the required software too!"
+echo "Any bugs should be logged here: http://bugs.zpanelcp.com"
+echo "Thanks,"
+echo "Bobby (ballen@zpanelcp.com)"
 
 # Install the required development enviroment packages...
 sudo apt-get update
@@ -25,6 +33,10 @@ echo "Include /etc/zpanel/conf/httpd-ubuntu.conf" >> ${apache_config}
 echo "# Include the ZPanel ProFTPd managed configuration file." >> ${proftpd_config}
 echo "Include /etc/zpanel/conf/proftpd-ubuntu.conf" >> ${proftpd_config}
 
+# Add exception to Sudoers file to enable zsudo execution for restarting Apache etc.
+echo "# ZPanel modification to enable automated Apache restarts." >> /etc/sudoers
+echo "www-data ALL=NOPASSWD: /etc/zpanel/bin/zsudo" >> /etc/sudoers
+
 # Make the default directories
 sudo mkdir /etc/zpanel/
 sudo mkdir /var/zpanel/
@@ -35,34 +47,35 @@ sudo mkdir /var/zpanel/updates/
 sudo mkdir /var/zpanel/hostdata/
 sudo mkdir /var/zpanel/hostdata/zadmin/
 sudo mkdir /var/zpanel/logs/domains/zadmin/
+sudo mkdir /var/zpanel/logs/proftpd/
 
 # Download the contents of the SVN repository..
-sudo svn co http://forge.zpanel.co.uk/svn/zpanelx/trunk /etc/zpanel/
+echo "You may now be asked to accept the SSL certificate for our SVN repository..."
+sudo svn co https://svn.zpanelcp.com/svnroot/zpanelcp/trunk /etc/zpanel/
 
 # Set the security on these directories
-sudo chmod -R 777 /etc/zpanel/
-sudo chmod -R 777 /var/zpanel/
 sudo chown -R www-data /etc/zpanel
 sudo chmod -R g+s /etc/zpanel
-sudo setfacl -R -d -m g::rwx /etc/zpanel
-sudo setfacl -R -d -m o::rx /etc/zpanel
 sudo chown -R www-data /var/zpanel
 sudo chmod -R g+s /var/zpanel
-sudo setfacl -R -d -m g::rwx /var/zpanel
-sudo setfacl -R -d -m o::rx /var/zpanel
+sudo chmod -R 777 /etc/zpanel/
+sudo chmod -R 777 /var/zpanel/
 
 # Restart Apache...
 sudo /etc/init.d/apache2 restart
 
 clear
-echo "ZPANEL LINUX INSTALLATION SCRIPT"
-echo "================================"
-echo "Development enviroment has been prepared..."
+echo "Will now attempt to create and insert the ZPanel database into MySQL, please enter the MySQL root password when asked..."
+mysql -uroot -p < /etc/zpanel/lib/dev/zpanel_core.sql
+
+clear
+echo "Ubuntu Install Script for ZPanel 6"
+echo "=================================="
+echo "Enviroment has been prepared..."
 echo " Just a few more steps..."
 echo " "
 echo "   1) Open http://localhost/phpmyadmin/ and login as 'root'."
-echo "   2) Import the SQL script found in /etc/zpanel/lib/dev/zpanel_core.sql"
-echo "   3) Navigate to http://localhost/zpanel/ and login with 'zadmin' and password 'zadmin'...done!"
+echo "   3) Add a MySQL user named 'zpanel' and password of 'zpanel' if you choose another account (recommended) you should edit the MySQL username and password in /etc/zpanel/conf/zcnf.php"
 echo ""
 echo ""
 
