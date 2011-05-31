@@ -318,11 +318,13 @@ TriggerLog(1, $b = "= ZPanel daemon starting execution....");
 # Make sure that the webalizer directory exists and if not, lets create it!!
 if (!file_exists(GetSystemOption('webalizer_reps') . "/")) {
     @mkdir(GetSystemOption('webalizer_reps'), 777);
+    @chmod(GetSystemOption('webalizer_reps'), 0777);
 }
 
 # Make sure that the webalizer directory exists for 'zadmin' and if not, lets create it!!
 if (!file_exists(GetSystemOption('webalizer_reps') . "/zadmin/")) {
     @mkdir(GetSystemOption('webalizer_reps') . "/zadmin/", 777);
+    @chmod(GetSystemOption('webalizer_reps') . "/zadmin/", 0777);
 }
 
 #####################################################################################################################################
@@ -335,6 +337,7 @@ $totalRows_domains = DataExchange("t", $z_db_name, $sql);
 # Check to ensure that a 'domains' log folder exists for the current user....
 if (!file_exists(GetSystemOption('logfile_dir') . $row_domains['ac_user_vc'] . "/")) {
     @mkdir(GetSystemOption('logfile_dir') . $row_domains['ac_user_vc'], 777);
+    @chmod(GetSystemOption('logfile_dir') . $row_domains['ac_user_vc'], 0777);
 }
 if ($totalRows_domains > 0) {
     do {
@@ -394,7 +397,7 @@ if ($totalRows_domains > 0) {
 if (IsWindows() == true) {
     system("C:\\ZPanel\\bin\\apache\\bin\\httpd.exe -k restart -n \"Apache\"");
 } else {
-    system("/etc/zpanel/bin/zsudo test");
+    system("/etc/zpanel/bin/zsudo " .GetSystemOption('restart_apache_cmd'). ""); # Need to create a system option so that the command can be customised for different distros etc.
 }
 TriggerLog(1, $b = "> Apache web server has been rebooted.");
 
