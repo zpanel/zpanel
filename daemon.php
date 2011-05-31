@@ -29,10 +29,24 @@ set_time_limit(0);
 # Added below line to fix issue with daemon running out of memory. See Bug #339 - http://www.zpanelcp.com/legacybugs/show_bug.php?id=339
 ini_set('memory_limit', '256M');
 
-$zpanel_db_conf = "C:/ZPanel/panel/conf/zcnf.php";
+# Check what OS is running, If Windows we need to set the DB include path different to that of POSIX based OSs.
 
-# Include some dependencies..
-include("C:/ZPanel/panel/conf/zcnf.php");
+function IsWindows() {
+    # DESCRIPTION: Returns true if the OS is Windows.
+    # FUNCTION RELEASE: 6.1.0
+    # FUNCTION AUTHOR: Bobby Allen (ballen@zpanel.co.uk)
+    if (strtoupper(substr(PHP_OS, 0, 3)) == "WIN") {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+if (IsWindows() == true) {
+    $zpanel_db_conf = "C:/ZPanel/panel/conf/zcnf.php";
+} else {
+    $zpanel_db_conf = "/etc/zpanel/conf/zcnf.php";
+}
 
 #####################################################################################################################################
 # LOAD SOME COMPONENTS REQUIRED BY THE SCRIPT....                                                                                   #
@@ -42,10 +56,11 @@ function DataExchange($a, $b, $c) {
     # DESCRIPTION: Safely queries the MySQL database as well as reports any issues with the Query into the logs table.
     # FUNCTION RELEASE: 5.0.0
     # FUNCTION AUTHOR: Bobby Allen (ballen@zpanel.co.uk)
+    global $zpanel_db_conf;
     $querytype = $a;
     $databaseconn = $b;
     $sqlquery = $c;
-    include("C:/ZPanel/panel/conf/zcnf.php");
+    include $zpanel_db_conf;
     mysql_select_db($databaseconn, $zdb) or die("Unable to select database, database (" . $z_db_name . ") appears to not exsist!");
     $fretval = false;
 
@@ -72,8 +87,9 @@ function GetSystemOption($a=" ") {
     # DESCRIPTION: Gets and returns a value from the 'z_settings' table.
     # FUNCTION RELEASE: 5.0.0
     # FUNCTION AUTHOR: Bobby Allen (ballen@zpanel.co.uk)
+    global $zpanel_db_conf;
     $setting_name = $a;
-    include("C:/ZPanel/panel/conf/zcnf.php");
+    include $zpanel_db_conf;
     $sql = "SELECT * FROM z_settings WHERE st_name_vc = '" . $setting_name . "'";
     $row_syssetting = DataExchange("l", $z_db_name, $sql);
     $total_syssetting = DataExchange("t", $z_db_name, $sql);
@@ -91,9 +107,10 @@ function TriggerLog($a=0, $b="No details.") {
     # DESCRIPTION: Logs an event, for debugging or audit purposes in the 'z_logs' table.
     # FUNCTION RELEASE: 5.0.0
     # FUNCTION AUTHOR: Bobby Allen (ballen@zpanel.co.uk)
+    global $zpanel_db_conf;
     $acc_key = $a;
     $log_details = $b;
-    include("C:/ZPanel/panel/conf/zcnf.php");
+    include $zpanel_db_conf;
     $sql = "INSERT INTO z_logs (lg_acc_fk, lg_when_ts, lg_ipaddress_vc, lg_details_tx) VALUES (" . $acc_key . ", '" . time() . "', '" . $_SERVER['REMOTE_ADDR'] . "', '" . $log_details . "')";
     DataExchange("w", $z_db_name, $sql);
     return;
@@ -374,7 +391,11 @@ if ($totalRows_domains > 0) {
 #####################################################################################################################################
 # New 'reload apache implementation, added in Zpanel 4.0.3)                                                                         #
 #####################################################################################################################################
-system("C:\\ZPanel\\bin\\apache\\bin\\httpd.exe -k restart -n \"Apache\"");
+if (IsWindows() == true) {
+    system("C:\\ZPanel\\bin\\apache\\bin\\httpd.exe -k restart -n \"Apache\"");
+} else {
+    system("/etc/zpanel/bin/zsudo test");
+}
 TriggerLog(1, $b = "> Apache web server has been rebooted.");
 
 #####################################################################################################################################
@@ -533,7 +554,6 @@ echo "\r\n\r\n";
 
 
 # Enable Bandwidth (If Disk isn't disabled)
-
 //bandwidth enabling code, don't enable the account if the diskspace has been exceeded, compare with diskspace replacement vairable
 $sqlvhosts = "SELECT * FROM zpanel_core.z_accounts JOIN (zpanel_core.z_bandwidth, zpanel_core.z_quotas, zpanel_core.z_vhosts) ON (z_accounts.ac_id_pk=z_bandwidth.bd_acc_fk AND z_accounts.ac_package_fk=z_quotas.qt_package_fk AND z_accounts.ac_id_pk=z_vhosts.vh_acc_fk) WHERE (z_bandwidth.bd_transamount_bi < z_quotas.qt_bandwidth_bi) AND (z_vhosts.vh_deleted_ts IS NULL) AND (z_bandwidth.bd_month_in = " . GetSystemOption('current_month') . ")  AND (z_vhosts.vh_type_in<>3) OR (z_quotas.qt_bandwidth_bi = '0'  AND z_vhosts.vh_deleted_ts IS NULL)  AND (z_bandwidth.bd_month_in = " . GetSystemOption('current_month') . ")  AND (z_vhosts.vh_type_in<>3)";
 $resultvhosts = mysql_query($sqlvhosts) or die('SQL error from usage limiter section 2 - ' . mysql_error());
