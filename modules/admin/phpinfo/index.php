@@ -27,7 +27,9 @@
 include('conf/zcnf.php');
 include('lang/' . GetPrefdLang($personalinfo['ap_language_vc']) . '.php');
 include('inc/zAccountDetails.php');
-
+?>
+<div id="contentwrapper_phpinfo" style="width:600px">
+<?php
 echo $lang['53'];
 echo "<br>&raquo; <a href=\"apps/phpinfo/\" target=\"_blank\" title=\"" . $lang['54'] . "\">" . $lang['54'] . "</a>";
 echo "<br>";
@@ -38,4 +40,6 @@ ob_end_clean();
 $info = preg_replace('%^.*<body>(.*)</body>.*$%ms', '$1', $info);
 $info = str_replace('<img border="0"', '<img style="display: none;"', $info);
 echo $info;
+
 ?>
+</div>

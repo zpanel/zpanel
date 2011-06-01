@@ -23,7 +23,7 @@ echo "Bobby (ballen@zpanelcp.com)"
 
 # Install the required development enviroment packages...
 sudo apt-get update
-sudo apt-get install lamp-server^ phpmyadmin subversion zip proftpd
+sudo apt-get install lamp-server^ phpmyadmin subversion zip proftpd webalizer
 
 # Add 'include' to the Apache configuration file..
 echo "# Include the ZPanel HTTPD managed configuration file." >> ${apache_config}
