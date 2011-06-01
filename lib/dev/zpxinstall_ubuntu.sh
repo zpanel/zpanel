@@ -41,7 +41,6 @@ echo "www-data ALL=NOPASSWD: /etc/zpanel/bin/zsudo" >> /etc/sudoers
 sudo mkdir /etc/zpanel/
 sudo mkdir /var/zpanel/
 sudo mkdir /var/zpanel/logs/
-sudo mkdir /var/zpanel/logs/zadmin/
 sudo mkdir /var/zpanel/backups/
 sudo mkdir /var/zpanel/updates/
 sudo mkdir /var/zpanel/hostdata/
@@ -61,13 +60,21 @@ sudo chmod -R g+s /var/zpanel
 sudo chmod -R 777 /etc/zpanel/
 sudo chmod -R 777 /var/zpanel/
 
+# Add a cron task to run deamon every 30 mins...
+echo "0,30 * * * * php /etc/zpanel/daemon.php" >> /etc/crontab
+# Set permissions so Apache can create cronjobs!
+chmod 777 /etc/crontab
+
+
 # Restart ProFTPd and Apache...
 sudo /etc/init.d/proftpd restart
 sudo /etc/init.d/apache2 restart
 
 clear
-echo "Will now attempt to create and insert the ZPanel database into MySQL, please enter the MySQL root password when asked..."
+echo "Will now attempt to create and insert the ZPanel core database into MySQL, please enter the MySQL root password when asked..."
 mysql -uroot -p < /etc/zpanel/lib/dev/zpanel_core.sql
+echo "Will now attempt to create and insert the ZPanel postfix database into MySQL, please enter the MySQL root password again when asked..."
+mysql -uroot -p < /etc/zpanel/lib/dev/zpanel_postfix.sql
 
 clear
 echo "Ubuntu Install Script for ZPanel 6"

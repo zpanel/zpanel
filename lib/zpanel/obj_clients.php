@@ -386,8 +386,6 @@ if ($_POST['inAction'] == 'delete') {
                     $total_deleted = ($total_deleted + 1);
                 } while ($rowftpaccounts = mysql_fetch_assoc($listftpaccounts));
                 # Then obviously we should go and reload FileZilla's configuration.... Due to removal of FTP accounts!
-                $filezilla_reload = GetSystemOption('filezilla_root') . "FileZilla server.exe /reload-config";
-                $reboot = exec($filezilla_reload);
             }
             $sql = "UPDATE z_ftpaccounts SET ft_deleted_ts=" . time() . " WHERE ft_acc_fk=" . $rowclients['ac_id_pk'] . " AND ft_deleted_ts IS NULL";
             DataExchange("w", $z_db_name, $sql);
@@ -408,4 +406,11 @@ if ($_POST['inAction'] == 'delete') {
     header("location: " . GetNormalModuleURL($returnurl) . "&r=ok");
     exit;
 }
+# We reload the FTP server here as there will be the requirement to do so...
+if (ShowServerPlatform() == "Windows") {
+    $filezilla_reload = GetSystemOption('filezilla_root') . "FileZilla server.exe /reload-config";
+} else {
+    $filezilla_reload = "/etc/zpanel/bin/zsudo service " . GetSystemOption('lsn_proftpd') . " reload";
+}
+$reboot = system($filezilla_reload);
 ?>

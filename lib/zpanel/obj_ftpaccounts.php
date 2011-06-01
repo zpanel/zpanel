@@ -27,7 +27,12 @@
 # Now we need to declare and cleanup some variables
 $acc_fk = $useraccount['ac_id_pk'];
 $returnurl = Cleaner('o', $_POST['inReturn']);
-$filezilla_reload = "\"" . GetSystemOption('filezilla_root') . "FileZilla server.exe\" /reload-config";
+
+if(ShowServerPlatform()=="Windows"){
+    $filezilla_reload = "\"" . GetSystemOption('filezilla_root') . "FileZilla server.exe\" /reload-config";
+} else {
+    $filezilla_reload = "/etc/zpanel/bin/zsudo service " .GetSystemOption('lsn_proftpd'). " reload";
+}
 
 # Lets get database ID's for all packages.
 $sql = "SELECT * FROM z_ftpaccounts WHERE ft_acc_fk=" . $useraccount['ac_id_pk'] . " AND ft_deleted_ts IS NULL";
@@ -117,7 +122,7 @@ if ($_POST['inAction'] == 'NewFTPAccount') {
     if ($api_resault == false) {
         # FTP account was not added!
     } else {
-        $reboot = exec($filezilla_reload);
+        $reboot = system($filezilla_reload);
     }
 
     # If all has gone well we need to now create the domain in the database...
@@ -152,7 +157,7 @@ if ($_POST['inAction'] == 'reset') {
             TriggerLog($useraccount['ac_id_pk'], $b = "FTP password for user (" . Cleaner('i', $_POST['inAccount']) . ") could not be reset.");
         } else {
             TriggerLog($useraccount['ac_id_pk'], $b = "FTP password for user (" . Cleaner('i', $_POST['inAccount']) . ") has been reset.");
-            $reboot = exec($filezilla_reload);
+            $reboot = system($filezilla_reload);
         }
     } else {
         TriggerLog($useraccount['ac_id_pk'], $b = "FTP password for user (" . Cleaner('i', $_POST['inAccount']) . ") not been reset as you are not the owner.");
@@ -180,7 +185,7 @@ if ($_POST['inAction'] == 'delete') {
                 TriggerLog($useraccount['ac_id_pk'], $b = "FTP user (" . $rowftpaccounts['ft_user_vc'] . ") could not be fully deleted.");
             } else {
                 TriggerLog($useraccount['ac_id_pk'], $b = "FTP user (" . $rowftpaccounts['ft_user_vc'] . ") has been deleted.");
-                $reboot = exec($filezilla_reload);
+                $reboot = system($filezilla_reload);
             }
 
 

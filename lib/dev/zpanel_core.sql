@@ -482,7 +482,7 @@ CREATE TABLE IF NOT EXISTS `z_settings` (
 --
 
 INSERT INTO `z_settings` (`st_id_pk`, `st_name_vc`, `st_value_tx`, `st_desc_tx`, `st_label_vc`, `st_inputtype_vc`, `st_checkvalue_tx`, `st_editable_in`) VALUES
-(9, 'zpanel_version', '10.0.0 dev', 'The version of ZPanel currently running on the server.', NULL, 'text', NULL, 0),
+(9, 'zpanel_version', '6.1.0', 'The version of ZPanel currently running on the server.', NULL, 'text', NULL, 0),
 (10, 'zpanel_root', '/etc/zpanel/', 'The root directory of ZPanel. (With a trailing slash)', NULL, 'text', NULL, 0),
 (11, 'zpanel_template', 'zpanel6', 'The folder name of the ZPanel template to use.', '200', 'text', NULL, 0),
 (12, 'zpanel_lang', 'en-us', 'The language folder to use.', '367', 'text', NULL, 0),
@@ -492,7 +492,7 @@ INSERT INTO `z_settings` (`st_id_pk`, `st_name_vc`, `st_value_tx`, `st_desc_tx`,
 (17, 'webalizer_sd', 'apps/webalizer/', 'The directory to the Webalizer statistics output directory (must has a trailing slash.)', '371', 'text', NULL, 1),
 (18, 'servicechk_to', '2', 'Service status timeout period (in seconds) default=2', '372', 'text', NULL, 1),
 (19, 'windows_drive', 'C', 'The primary Windows partition letter that ZPanel is installed on.', '373', 'text', NULL, 1),
-(20, 'cron_file', 'C:/WINDOWS/System32/crontab', 'The location of the crontab file.', '374', 'text', NULL, 1),
+(20, 'cron_file', '/etc/crontab', 'The location of the crontab file.', '374', 'text', NULL, 1),
 (21, 'php_exer', 'php', 'The full system path to the PHP executable.', '375', 'text', NULL, 0),
 (22, 'hosted_dir', '/var/zpanel/hostdata/', 'The full system path to the file storage area for user storage space.', '376', 'text', NULL, 1),
 (23, 'apache_vhost', '/etc/zpanel/conf/httpd-vhosts.conf', 'The full system patch and filename of the Apache VHOST configuration name.', '377', 'text', NULL, 1),
@@ -519,9 +519,11 @@ INSERT INTO `z_settings` (`st_id_pk`, `st_name_vc`, `st_value_tx`, `st_desc_tx`,
 (44, 'install_date', '1266504603', 'The date that ZPanel was installed.', NULL, 'text', NULL, NULL),
 (45, 'last_update', '1304061454', 'The date that ZPanel was last updated.', NULL, 'text', NULL, NULL),
 (46, 'zms_host', '', 'The hostname or IP of an active ZPanel Master Server. (For centralised monitoring and reports)', '390', 'text', NULL, 1),
-(47, 'auto_ftpuser', 'true', 'Enable automatic creation of a root FTP user account on ZPanel user creation.', '391', 'text', NULL, 1),
+(47, 'auto_ftpuser', 'false', 'Enable automatic creation of a root FTP user account on ZPanel user creation.', '391', 'text', NULL, 1),
 (48, 'zpanel_lockdown', '0', 'Enable Zpanel Lockdown, Admins Only', '392', 'text', '', 1),
-(49, 'htpasswd_exe', 'htpasswd', 'Path to htpasswd.exe for potecting directories with .htaccess', NULL, 'text', NULL, NULL);
+(49, 'htpasswd_exe', 'htpasswd', 'Path to htpasswd.exe for potecting directories with .htaccess', NULL, 'text', NULL, NULL),
+(50, 'lsn_apache', 'apache2', '*NIX Service name for Apache', NULL, 'text', NULL, 0),
+(51, 'lsn_proftpd', 'proftpd', '*NIX Service name for ProFTPd', NULL, 'text', NULL, 0);
 
 -- --------------------------------------------------------
 

@@ -29,6 +29,11 @@ set_time_limit(0);
 # Added below line to fix issue with daemon running out of memory. See Bug #339 - http://www.zpanelcp.com/legacybugs/show_bug.php?id=339
 ini_set('memory_limit', '256M');
 
+# Disable error messages
+ini_set('error_reporting', E_ALL | E_STRICT);
+ini_set('display_errors', 'Off');
+ini_set('log_errors', 'Off');
+
 # Check what OS is running, If Windows we need to set the DB include path different to that of POSIX based OSs.
 
 function IsWindows() {
@@ -44,10 +49,11 @@ function IsWindows() {
 
 if (IsWindows() == true) {
     $zpanel_db_conf = "C:/ZPanel/panel/conf/zcnf.php";
+    echo "This OS has been detected as: Windows\n";
 } else {
     $zpanel_db_conf = "/etc/zpanel/conf/zcnf.php";
+    echo "This OS has been detected as: Linux\n";
 }
-
 #####################################################################################################################################
 # LOAD SOME COMPONENTS REQUIRED BY THE SCRIPT....                                                                                   #
 #####################################################################################################################################
@@ -61,7 +67,7 @@ function DataExchange($a, $b, $c) {
     $databaseconn = $b;
     $sqlquery = $c;
     include $zpanel_db_conf;
-    mysql_select_db($databaseconn, $zdb) or die("Unable to select database, database (" . $z_db_name . ") appears to not exsist!");
+    @mysql_select_db($z_db_name, $zdb) or die("Unable to select database, database (" . $z_db_name . ") appears to not exsist!\nMySQL Said: " . mysql_error() . "\n");
     $fretval = false;
 
     if ($querytype == 'r') {
@@ -121,7 +127,11 @@ function ChangeSafeSlashesToWin($a=0) {
     # FUNCTION RELEASE: 5.0.0
     # FUNCTION AUTHOR: Bobby Allen (ballen@zpanel.co.uk)
     $path = $a;
-    $fretval = str_replace("/", "\\", $path);
+    if (IsWindows() == true) {
+        $fretval = str_replace("/", "\\", $path);
+    } else {
+        $fretval = $path;
+    }
     return $fretval;
 }
 
@@ -397,7 +407,7 @@ if ($totalRows_domains > 0) {
 if (IsWindows() == true) {
     system("C:\\ZPanel\\bin\\apache\\bin\\httpd.exe -k restart -n \"Apache\"");
 } else {
-    system("/etc/zpanel/bin/zsudo " .GetSystemOption('restart_apache_cmd'). ""); # Need to create a system option so that the command can be customised for different distros etc.
+    system("/etc/zpanel/bin/zsudo service " . GetSystemOption('lsn_apache') . " reload"); # Need to create a system option so that the command can be customised for different distros etc.
 }
 TriggerLog(1, $b = "> Apache web server has been rebooted.");
 
@@ -716,7 +726,11 @@ if ($edited == 1) {
         TriggerLog(1, $b = "> Changes successfully written to vhost file for \'bandwidth exceeded\'");
         if ($restartapache = "Yes") {
             echo "restating \r\n";
-            system("C:\\ZPanel\\bin\\apache\\bin\\httpd.exe -k restart -n \"Apache\"");
+            if (IsWindows() == true) {
+                system("C:\\ZPanel\\bin\\apache\\bin\\httpd.exe -k restart -n \"Apache\"");
+            } else {
+                system("/etc/zpanel/bin/zsudo service apache2 reload");
+            }
             TriggerLog(1, $b = "> Apache web server has been rebooted due to a bandwidth or disk limit reached or reset.");
             echo "restarted Successfully \r\n";
         }
