@@ -24,7 +24,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-session_start();
+
 include('conf/zcnf.php');
 include_once('inc/zDataExchange.php');
 if (isset($_SESSION['zUserID'])) {

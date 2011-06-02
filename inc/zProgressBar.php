@@ -31,8 +31,8 @@ if ($_GET['total'] > 0) {
         $per = ($_GET['used'] / $_GET['total']) * 100;
     } else {
         $per = 100;
-        $unlim = false;
     }
+        $unlim = false;
 } else {
     $per = 0;
     $unlim = true;

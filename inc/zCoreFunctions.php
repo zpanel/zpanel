@@ -162,7 +162,7 @@ function ShowKernelVersion($a) {
         $version = exec('uname -r');
         $fretval = $version;
     } else {
-        $fretal = "N/A";
+        $fretval = "N/A";
     }
     return $fretval;
 }

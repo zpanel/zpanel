@@ -27,6 +27,12 @@ include('conf/zcnf.php');
 include('lang/' . GetPrefdLang($personalinfo['ap_language_vc']) . '.php');
 include('inc/zAccountDetails.php');
 
+// Check if all used variables are assigned. If not, NULL them. (added by Triple_nothing to fix unset variable issues when PHP is in Strict reporting mode)
+if(!isset($useraccount['ac_user_vc'])) { $useraccount['ac_user_vc'] = NULL; }
+if(!isset($_POST['upatehtaccess'])) { $_POST['upatehtaccess'] = NULL; }
+if(!isset($ht_id_pk)) { $ht_id_pk = NULL; }
+if(!isset($user)) { $user = NULL; }
+
 $sql = "SELECT * FROM z_mysql WHERE my_acc_fk=" . $useraccount['ac_id_pk'] . " AND my_deleted_ts IS NULL";
 $listmysql = DataExchange("r", $z_db_name, $sql);
 $rowmysql = mysql_fetch_assoc($listmysql);
