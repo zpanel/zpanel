@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Ubuntu Linux Installation Script for Zpanel 6.1.0 (Development Enviroment)
+# CentOS Linux Installation Script for Zpanel 6.1.0 (Development Enviroment)
 # Script written by Bobby Allen (ballen@zpanel.co.uk) 14/05/2011
 #
 #
@@ -12,8 +12,9 @@ apache_config=/etc/httpd/conf/httpd.conf
 proftpd_config=/etc/proftpd.conf
 
 clear
-echo "ZPANEL ONLINE INSTALLER (for CentOS) (by Bobby Allen)"
-echo "====================================================="
+echo "#########################################################"
+echo "# ZPANEL ONLINE INSTALLER (for CentOS)                  #"
+echo "#########################################################"
 echo ""
 echo "Welcome to the online installer for ZPanel, this will download the latest source over SVN and install it for you."
 echo "It will attempt to download and install all the required software too!"
@@ -22,14 +23,12 @@ echo "Thanks,"
 echo "Bobby (ballen@zpanelcp.com)"
 
 # Install the required development enviroment packages...
-sudo yum update
+sudo yum install httpd php53 php53-devel php53-gd php53-mbstring php53-imap php53-mysql php53-xml php53-xmlrpc curl curl-devel perl-libwww-perl libxml2 libxml2-devel mysql-server subversion zip webalizer gcc gcc-c++
 sudo yum remove vsftpd
-sudo yum install httpd php php-devel php-gd php-imap php-mysql php-pear php-xml php-xmlrpc curl curl-devel perl-libwww-perl libxml2 libxml2-devel phpmyadmin subversion zip webalizer gcc gcc-c++
-
 
 # We have to install ProFTPd Manually as CentOS does not have a package for it..
 cd /tmp/
-wget --passive-ftp http://packages.zpanelcp.com/pkgs/source/proftpd-1.3.3e.tar.gz
+wget http://forums.zpanelcp.com/pkgs/source/proftpd-1.3.3e.tar.gz
 tar xvfz proftpd-1.3.3e.tar.gz
 cd proftpd-1.3.3e/
 ./configure --sysconfdir=/etc
@@ -38,8 +37,10 @@ make install
 cd ..
 rm -fr proftpd-1.3.3e*
 ln -s /usr/local/sbin/proftpd /usr/sbin/proftpd
-wget http://packages.zpanelcp.com/pkgs/scripts/proftpd_centos55.txt
-mv proftpd_centos55.txt /etc/int.d/proftpd
+cd ~
+wget http://forums.zpanelcp.com/pkgs/scripts/proftpd_centos55.txt
+mv proftpd_centos55.txt proftpd
+mv proftpd /etc/init.d/proftpd
 chmod 755 /etc/init.d/proftpd
 
 
@@ -64,17 +65,18 @@ sudo mkdir /var/zpanel/backups/
 sudo mkdir /var/zpanel/updates/
 sudo mkdir /var/zpanel/hostdata/
 sudo mkdir /var/zpanel/hostdata/zadmin/
+sudo mkdir /var/zpanel/logs/domains/
 sudo mkdir /var/zpanel/logs/domains/zadmin/
 sudo mkdir /var/zpanel/logs/proftpd/
 
 # Download the contents of the SVN repository..
 echo "You may now be asked to accept the SSL certificate for our SVN repository..."
-sudo svn co https://svn.zpanelcp.com/svnroot/zpanelcp/trunk /etc/zpanel/
+sudo svn co https://zpanelcp.svn.sourceforge.net/svnroot/zpanelcp/trunk /etc/zpanel/
 
 # Set the security on these directories
-sudo chown -R www-data /etc/zpanel
+sudo chown -R apache /etc/zpanel
 sudo chmod -R g+s /etc/zpanel
-sudo chown -R www-data /var/zpanel
+sudo chown -R apache /var/zpanel
 sudo chmod -R g+s /var/zpanel
 sudo chmod -R 777 /etc/zpanel/
 sudo chmod -R 777 /var/zpanel/
@@ -82,26 +84,25 @@ sudo chmod -R 777 /var/zpanel/
 
 # Add services to be started
 sudo chkconfig --levels 235 httpd on
-chkconfig --levels 235 proftpd on
-sudo chkconfig --add mysqld
-sudo chkconfig mysqld on
-sudo service httpd start
-sudo service mysqld start
-sudo service proftpd start
+sudo chkconfig --levels 235 proftpd on
+sudo chkconfig --levels 235 mysqld on
+service httpd start
+service mysqld start
+service proftpd start
+
+# Now we run the MySQL secure script (to enable the user to set a MySQL root password etc.)
+/usr/bin/mysql_secure_installation
 
 # Add a cron task to run deamon every 30 mins...
 echo "0,30 * * * * php /etc/zpanel/daemon.php" >> /etc/crontab
 # Set permissions so Apache can create cronjobs!
 sudo chmod 777 /etc/crontab
 
-clear
 echo "Will now attempt to create and insert the ZPanel core database into MySQL, please enter the MySQL root password when asked..."
 mysql -uroot -p < /etc/zpanel/lib/dev/zpanel_core.sql
 echo "Will now attempt to create and insert the ZPanel postfix database into MySQL, please enter the MySQL root password again when asked..."
 mysql -uroot -p < /etc/zpanel/lib/dev/zpanel_postfix.sql
 
-clear
-echo "CentOS Install Script for ZPanel 6"
 echo "=================================="
 echo "Enviroment has been prepared..."
 echo " Just a few more steps..."
