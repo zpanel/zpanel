@@ -6,24 +6,43 @@
 #
 
 # Apache HTTPD configuration file path
-apache_config=/etc/apache2/apache2.conf
+apache_config=/etc/httpd/conf/httpd.conf
 
 # ProFTPd configuration file path
-proftpd_config=/etc/proftpd/proftpd.conf
+proftpd_config=/etc/proftpd.conf
 
 clear
-echo "ZPANEL ONLINE INSTALLER (by Bobby Allen)"
-echo "========================================"
+echo "ZPANEL ONLINE INSTALLER (for CentOS) (by Bobby Allen)"
+echo "====================================================="
 echo ""
 echo "Welcome to the online installer for ZPanel, this will download the latest source over SVN and install it for you."
-echo "This script has only been tested on Ubuntu Linux, It will attempt to download and install all the required software too!"
+echo "It will attempt to download and install all the required software too!"
 echo "Any bugs should be logged here: http://bugs.zpanelcp.com"
 echo "Thanks,"
 echo "Bobby (ballen@zpanelcp.com)"
 
 # Install the required development enviroment packages...
-sudo apt-get update
-sudo apt-get install lamp-server^ phpmyadmin subversion zip proftpd webalizer
+sudo yum update
+sudo yum remove vsftpd
+sudo yum install httpd php php-devel php-gd php-imap php-mysql php-pear php-xml php-xmlrpc curl curl-devel perl-libwww-perl libxml2 libxml2-devel phpmyadmin subversion zip webalizer gcc gcc-c++
+
+
+# We have to install ProFTPd Manually as CentOS does not have a package for it..
+cd /tmp/
+wget --passive-ftp http://packages.zpanelcp.com/pkgs/source/proftpd-1.3.3e.tar.gz
+tar xvfz proftpd-1.3.3e.tar.gz
+cd proftpd-1.3.3e/
+./configure --sysconfdir=/etc
+make
+make install
+cd ..
+rm -fr proftpd-1.3.3e*
+ln -s /usr/local/sbin/proftpd /usr/sbin/proftpd
+wget http://packages.zpanelcp.com/pkgs/scripts/proftpd_centos55.txt
+mv proftpd_centos55.txt /etc/int.d/proftpd
+chmod 755 /etc/init.d/proftpd
+
+
 
 # Add 'include' to the Apache configuration file..
 echo "# Include the ZPanel HTTPD managed configuration file." >> ${apache_config}
@@ -35,7 +54,7 @@ echo "Include /etc/zpanel/conf/proftpd.conf" >> ${proftpd_config}
 
 # Add exception to Sudoers file to enable zsudo execution for restarting Apache etc.
 echo "# ZPanel modification to enable automated Apache restarts." >> /etc/sudoers
-echo "www-data ALL=NOPASSWD: /etc/zpanel/bin/zsudo" >> /etc/sudoers
+echo "apache ALL=NOPASSWD: /etc/zpanel/bin/zsudo" >> /etc/sudoers
 
 # Make the default directories
 sudo mkdir /etc/zpanel/
@@ -60,15 +79,20 @@ sudo chmod -R g+s /var/zpanel
 sudo chmod -R 777 /etc/zpanel/
 sudo chmod -R 777 /var/zpanel/
 
+
+# Add services to be started
+sudo chkconfig --levels 235 httpd on
+chkconfig --levels 235 proftpd on
+sudo chkconfig --add mysqld
+sudo chkconfig mysqld on
+sudo service httpd start
+sudo service mysqld start
+sudo service proftpd start
+
 # Add a cron task to run deamon every 30 mins...
 echo "0,30 * * * * php /etc/zpanel/daemon.php" >> /etc/crontab
 # Set permissions so Apache can create cronjobs!
-chmod 777 /etc/crontab
-
-
-# Restart ProFTPd and Apache...
-sudo /etc/init.d/proftpd restart
-sudo /etc/init.d/apache2 restart
+sudo chmod 777 /etc/crontab
 
 clear
 echo "Will now attempt to create and insert the ZPanel core database into MySQL, please enter the MySQL root password when asked..."
@@ -77,7 +101,7 @@ echo "Will now attempt to create and insert the ZPanel postfix database into MyS
 mysql -uroot -p < /etc/zpanel/lib/dev/zpanel_postfix.sql
 
 clear
-echo "Ubuntu Install Script for ZPanel 6"
+echo "CentOS Install Script for ZPanel 6"
 echo "=================================="
 echo "Enviroment has been prepared..."
 echo " Just a few more steps..."
