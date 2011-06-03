@@ -97,7 +97,7 @@ if (isset($_POST['returnpath'])) {
 				</td></tr>';
                         }
                     } else {
-                        echo'<table class="zannouce" width="100%" cellpadding="5"><tr><td>' . $lang['316'] . '</td></tr>';
+                        echo'<table class="zannouce" width="100%" cellpadding="5"><tr><td>' . $lang['316'] . ' ' .$_POST['upatehtaccess'] .'.htpasswd ' .$lang['398']. '</td></tr>';
                     }
 
                     echo'</table>';
@@ -229,14 +229,14 @@ function deletehtaccess($useraccount, $ht_id_pk, $upatereturnpath) {
     if (file_exists($upatereturnpath . "/.htaccess")) {
         unlink($upatereturnpath . "/.htaccess");
     }
-    echo '<div class="zannouce">' . $lang['334'] . trim(substr($upatereturnpath, strlen(GetSystemOption('hosted_dir')), strlen($upatereturnpath))) . '</div><br>';
+    echo '<div class="zannouce"><b>'. $lang['334'] .'</b> '. $ht_id_pk.'.htpasswd <b>'. $lang['397'] .'</b> '. trim(substr($upatereturnpath, strlen(GetSystemOption('hosted_dir')), strlen($upatereturnpath))) . '</div><br>';
 }
 
 //DELETE USER
 function deleteuser($ht_id_pk, $user) {
     include('lang/' . GetPrefdLang($personalinfo['ap_language_vc']) . '.php');
     system(GetSystemOption('htpasswd_exe') . " -D " . GetSystemOption('zpanel_root') . "/modules/advanced/htpasswd/files/" . $ht_id_pk . ".htpasswd " . $user . "");
-    echo '<div class="zannouce">' . $lang['337'] . '</div><br>';
+    echo '<div class="zannouce"><b>'. $lang['337'] .'</b>'. $user .'<b> '. $lang['396'] .'</b>'. $ht_id_pk .'.htpasswd</div><br>';
 }
 
 //ADD USER

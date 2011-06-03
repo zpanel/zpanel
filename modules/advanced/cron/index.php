@@ -41,7 +41,7 @@ if ((isset($_GET['r'])) && ($_GET['r'] == 'blank')) {
     echo "<br><div class=\"zannouce\">" . $lang['300'] . "</div>";
 }
 if ((isset($_GET['r'])) && ($_GET['r'] == 'noexists')) {
-    echo "<br><div class=\"zannouce\">" . $lang['301'] . "</div>";
+    echo "<br><div class=\"zannouce\">" . $lang['301'] . " ".$useraccount['ac_user_vc']."</div>";
 }
 if ((isset($_GET['r'])) && ($_GET['r'] == 'error')) {
     echo "<br><div class=\"zannouce\">" . $lang['395'] . "</div>";
