@@ -12,8 +12,9 @@ apache_config=/etc/apache2/apache2.conf
 proftpd_config=/etc/proftpd/proftpd.conf
 
 clear
-echo "ZPANEL ONLINE INSTALLER (by Bobby Allen)"
-echo "========================================"
+echo "############################################"
+echo "# ZPANEL ONLINE INSTALLER (by Bobby Allen) #"
+echo "############################################"
 echo ""
 echo "Welcome to the online installer for ZPanel, this will download the latest source over SVN and install it for you."
 echo "This script has only been tested on Ubuntu Linux, It will attempt to download and install all the required software too!"
@@ -23,7 +24,7 @@ echo "Bobby (ballen@zpanelcp.com)"
 
 # Install the required development enviroment packages...
 sudo apt-get update
-sudo apt-get install lamp-server^ phpmyadmin subversion zip proftpd webalizer
+sudo apt-get install lamp-server^ phpmyadmin subversion zip proftpd webalizer php5-gd
 
 # Add 'include' to the Apache configuration file..
 echo "# Include the ZPanel HTTPD managed configuration file." >> ${apache_config}
@@ -71,14 +72,11 @@ chmod 777 /etc/crontab
 sudo /etc/init.d/proftpd restart
 sudo /etc/init.d/apache2 restart
 
-clear
 echo "Will now attempt to create and insert the ZPanel core database into MySQL, please enter the MySQL root password when asked..."
 mysql -uroot -p < /etc/zpanel/lib/dev/zpanel_core.sql
 echo "Will now attempt to create and insert the ZPanel postfix database into MySQL, please enter the MySQL root password again when asked..."
 mysql -uroot -p < /etc/zpanel/lib/dev/zpanel_postfix.sql
 
-clear
-echo "Ubuntu Install Script for ZPanel 6"
 echo "=================================="
 echo "Enviroment has been prepared..."
 echo " Just a few more steps..."
