@@ -12,19 +12,28 @@ apache_config=/etc/apache2/apache2.conf
 proftpd_config=/etc/proftpd/proftpd.conf
 
 clear
-echo "############################################"
-echo "# ZPANEL ONLINE INSTALLER (by Bobby Allen) #"
-echo "############################################"
+echo "#########################################################"
+echo "# ZPanel Installation Package for Ubuntu Linux          #"
+echo "# --------------------------------------------          #"
+echo "# Package maintainer: Bobby Allen (ballen@zpanelcp.com) #"
+echo "# Last updated:       04/06/2011                        #"
+echo "# Website:            http://www.zpanelcp.com           #"
+echo "########################################################"
 echo ""
-echo "Welcome to the online installer for ZPanel, this will download the latest source over SVN and install it for you."
-echo "This script has only been tested on Ubuntu Linux, It will attempt to download and install all the required software too!"
-echo "Any bugs should be logged here: http://bugs.zpanelcp.com"
-echo "Thanks,"
-echo "Bobby (ballen@zpanelcp.com)"
+echo "Welcome to the online installer for ZPanel, this will download the required software and install ZPanel."
+echo ""
+echo "This install script is designed to be used on freshly installed servers or workstations"
+echo "due to the nature of the software and amount of system changes it makes we recommend that"
+echo "if you want to uninstall ZPanel that you re-install your OS."
+echo ""
+echo "We also recommend that ZPanel is installed on a dedicated server for security reasons!"
+echo ""
+echo "Press ENTER to continue with the installation... (or CTRL+C to quit)"
+read continue
 
 # Install the required development enviroment packages...
 sudo apt-get update
-sudo apt-get install lamp-server^ subversion zip proftpd webalizer php5-gd php5-suhosin
+sudo apt-get install apache2 libapache2-mod-php5 libapache2-mod-bw php5 php5-cli php-common php5_php5-mysql php5-curl php5-gd php-pear php5-imagick php5-imap php5-mcrypt php5-xmlrpc php5-xsl php5-suhosin mysql-server mysql-client subversion zip proftpd webalizer
 
 # Add 'include' to the Apache configuration file..
 echo "# Include the ZPanel HTTPD managed configuration file." >> ${apache_config}
@@ -62,12 +71,6 @@ sudo chmod -R g+s /var/zpanel
 sudo chmod -R 777 /etc/zpanel/
 sudo chmod -R 777 /var/zpanel/
 
-# Add a cron task to run deamon every 30 mins...
-echo "0,30 * * * * php /etc/zpanel/daemon.php" >> /etc/crontab
-# Set permissions so Apache can create cronjobs!
-chmod 777 /etc/crontab
-
-
 # Restart ProFTPd and Apache...
 sudo /etc/init.d/proftpd restart
 sudo /etc/init.d/apache2 restart
@@ -77,12 +80,16 @@ mysql -uroot -p < /etc/zpanel/lib/dev/zpanel_core.sql
 echo "Will now attempt to create and insert the ZPanel postfix database into MySQL, please enter the MySQL root password again when asked..."
 mysql -uroot -p < /etc/zpanel/lib/dev/zpanel_postfix.sql
 
-echo "=================================="
-echo "Enviroment has been prepared..."
-echo " Just a few more steps..."
+echo ""
+echo "ZPanel has now been installed!"
 echo " "
-echo "   1) Open http://localhost/phpmyadmin/ and login as 'root'."
-echo "   2) Add a MySQL user named 'zpanel' and password of 'zpanel' if you choose another account (recommended)"
+echo "   Just a few more steps..."
+echo "   ------------------------"
+echo " "
+echo "   1) Add a MySQL user named 'zpanel' and password of 'zpanel' if you choose another account (recommended)"
 echo "      you should edit the MySQL username and password in /etc/zpanel/conf/zcnf.php"
-echo "   3) Restart the server so that the new Daemon cron job starts to work"
+echo "   2) Create a new cron job for daemon.php to run hourly ('crontab -e' with the following: '0 * * * * php /etc/zpanel/daemon.php')"
+echo " "
+echo "   If you need help with the 'final touches' please visit the ZPanel forums here: http://forums.zpanelcp.com."
+echo "   Thanks for installing ZPanel! :)"
 
