@@ -33,7 +33,7 @@ read continue
 
 # Install the required development enviroment packages...
 sudo apt-get update
-sudo apt-get install apache2 libapache2-mod-php5 libapache2-mod-bw php5 php5-cli php-common php5_php5-mysql php5-curl php5-gd php-pear php5-imagick php5-imap php5-mcrypt php5-xmlrpc php5-xsl php5-suhosin mysql-server mysql-client subversion zip proftpd webalizer
+sudo apt-get install apache2 libapache2-mod-php5 libapache2-mod-bw php5 php5-cli php5-common php5-mysql php5-curl php5-gd php-pear php5-imagick php5-imap php5-mcrypt php5-xmlrpc php5-xsl php5-suhosin mysql-server mysql-client subversion zip proftpd webalizer
 
 # Add 'include' to the Apache configuration file..
 echo "# Include the ZPanel HTTPD managed configuration file." >> ${apache_config}
@@ -75,10 +75,51 @@ sudo chmod -R 777 /var/zpanel/
 sudo /etc/init.d/proftpd restart
 sudo /etc/init.d/apache2 restart
 
-echo "Will now attempt to create and insert the ZPanel core database into MySQL, please enter the MySQL root password when asked..."
-mysql -uroot -p < /etc/zpanel/lib/dev/zpanel_core.sql
-echo "Will now attempt to create and insert the ZPanel postfix database into MySQL, please enter the MySQL root password again when asked..."
-mysql -uroot -p < /etc/zpanel/lib/dev/zpanel_postfix.sql
+echo "Please now enter the root MySQL password so I can import the databases and create the ZPanel DB config file:"
+read password
+
+echo "> Importing zpanel_core database.."
+mysql -uroot -p${password} < /etc/zpanel/lib/dev/zpanel_core.sql
+echo "  ^ Done"
+echo "> Importing zpanel_postfix database.."
+mysql -uroot -p${password} < /etc/zpanel/lib/dev/zpanel_postfix.sql
+echo "  ^ Done!"
+echo "> Writing the zpanel database configuration file.."
+
+echo "<?php" >> /etc/zpanel/conf/zcnf.php
+echo "" >> /etc/zpanel/conf/zcnf.php
+echo "/**" >> /etc/zpanel/conf/zcnf.php
+echo " *" >> /etc/zpanel/conf/zcnf.php
+echo " * ZPanel - A Cross-Platform Open-Source Web Hosting Control panel." >> /etc/zpanel/conf/zcnf.php
+echo " * " >> /etc/zpanel/conf/zcnf.php
+echo " * @package ZPanel" >> /etc/zpanel/conf/zcnf.php
+echo " * @version $Id$" >> /etc/zpanel/conf/zcnf.php
+echo " * @author Bobby Allen - ballen@zpanelcp.com" >> /etc/zpanel/conf/zcnf.php
+echo " * @copyright (c) 2008-2011 ZPanel Group - http://www.zpanelcp.com/" >> /etc/zpanel/conf/zcnf.php
+echo " * @license http://opensource.org/licenses/gpl-3.0.html GNU Public License v3" >> /etc/zpanel/conf/zcnf.php
+echo " *" >> /etc/zpanel/conf/zcnf.php
+echo " * This program (ZPanel) is free software: you can redistribute it and/or modify" >> /etc/zpanel/conf/zcnf.php
+echo " * it under the terms of the GNU General Public License as published by" >> /etc/zpanel/conf/zcnf.php
+echo " * the Free Software Foundation, either version 3 of the License, or" >> /etc/zpanel/conf/zcnf.php
+echo " * (at your option) any later version." >> /etc/zpanel/conf/zcnf.php
+echo " *" >> /etc/zpanel/conf/zcnf.php
+echo " * This program is distributed in the hope that it will be useful," >> /etc/zpanel/conf/zcnf.php
+echo " * but WITHOUT ANY WARRANTY; without even the implied warranty of" >> /etc/zpanel/conf/zcnf.php
+echo " * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the" >> /etc/zpanel/conf/zcnf.php
+echo " * GNU General Public License for more details." >> /etc/zpanel/conf/zcnf.php
+echo " *" >> /etc/zpanel/conf/zcnf.php
+echo " * You should have received a copy of the GNU General Public License" >> /etc/zpanel/conf/zcnf.php
+echo " * along with this program.  If not, see <http://www.gnu.org/licenses/>." >> /etc/zpanel/conf/zcnf.php
+echo " *" >> /etc/zpanel/conf/zcnf.php
+echo " */" >> /etc/zpanel/conf/zcnf.php
+echo "\$z_db_host = \"localhost\";" >> /etc/zpanel/conf/zcnf.php
+echo "\$z_db_name = \"zpanel_core\";" >> /etc/zpanel/conf/zcnf.php
+echo "\$z_db_user = \"root\";" >> /etc/zpanel/conf/zcnf.php
+echo "\$z_db_pass = \"$password\";" >> /etc/zpanel/conf/zcnf.php
+echo "\$zdb = @mysql_pconnect(\$z_db_host, \$z_db_user, \$z_db_pass) or trigger_error('ZPanel Stack Error :: Unable to connect to ZPanel Database Server (' . \$z_db_host . ').');" >> /etc/zpanel/conf/zcnf.php
+echo "?>" >> /etc/zpanel/conf/zcnf.php
+echo "  ^ Done"
+
 
 echo ""
 echo "ZPanel has now been installed!"
@@ -86,9 +127,7 @@ echo " "
 echo "   Just a few more steps..."
 echo "   ------------------------"
 echo " "
-echo "   1) Add a MySQL user named 'zpanel' and password of 'zpanel' if you choose another account (recommended)"
-echo "      you should edit the MySQL username and password in /etc/zpanel/conf/zcnf.php"
-echo "   2) Create a new cron job for daemon.php to run hourly ('crontab -e' with the following: '0 * * * * php /etc/zpanel/daemon.php')"
+echo "   1) Create a new cron job for daemon.php to run hourly ('crontab -e' with the following: '0 * * * * php /etc/zpanel/daemon.php')"
 echo " "
 echo "   If you need help with the 'final touches' please visit the ZPanel forums here: http://forums.zpanelcp.com."
 echo "   Thanks for installing ZPanel! :)"
