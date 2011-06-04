@@ -24,7 +24,7 @@ echo "Bobby (ballen@zpanelcp.com)"
 
 # Install the required development enviroment packages...
 sudo apt-get update
-sudo apt-get install lamp-server^ phpmyadmin subversion zip proftpd webalizer php5-gd
+sudo apt-get install lamp-server^ subversion zip proftpd webalizer php5-gd php5-suhosin
 
 # Add 'include' to the Apache configuration file..
 echo "# Include the ZPanel HTTPD managed configuration file." >> ${apache_config}
@@ -82,7 +82,7 @@ echo "Enviroment has been prepared..."
 echo " Just a few more steps..."
 echo " "
 echo "   1) Open http://localhost/phpmyadmin/ and login as 'root'."
-echo "   3) Add a MySQL user named 'zpanel' and password of 'zpanel' if you choose another account (recommended) you should edit the MySQL username and password in /etc/zpanel/conf/zcnf.php"
-echo ""
-echo ""
+echo "   2) Add a MySQL user named 'zpanel' and password of 'zpanel' if you choose another account (recommended)"
+echo "      you should edit the MySQL username and password in /etc/zpanel/conf/zcnf.php"
+echo "   3) Restart the server so that the new Daemon cron job starts to work"
 

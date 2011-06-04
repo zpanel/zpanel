@@ -264,7 +264,7 @@ function zapi_filesystem_remove($folder){
 
 # Read the news from the ZPanel website...
 function zapi_news_display(){
-	$newsurl = "http://ruby.zpanel.co.uk/news.php";
+	$newsurl = "http://api.zpanelcp.com/api/news.php";
 	$handle = @file_get_contents($newsurl);
 	$content = $handle;
 	if($content ==''){
@@ -277,20 +277,15 @@ function zapi_news_display(){
 }
 
 function zapi_version_check($version){
-	$updateurl = "http://ruby.zpanel.co.uk/version.php";
+	$updateurl = "http://api.zpanelcp.com/api/version.php?sv=" .  GetSystemOption('zpanel_version'). "";
 	$handle = @file_get_contents($updateurl);
-	$versionstring = $handle;
-	if($versionstring==''){
-	$versionstring = "Unable to connect to the ZPanel Update server at this time...";
-	TriggerLog($useraccount['ac_id_pk'], $b="Unable to connect to the ZPanel Update server at this time!");
+	$content = $handle;
+	if($content ==''){
+		$content = "Unable to connect to the ZPanel Version Checker Service at this time.";
 	} else {
-		if($versionstring<>GetSystemOption('zpanel_version')){
-			$versioninfo = "You are not currently running the latest stable release (<strong>" .$version. "</strong>) the latest release is (<strong>".$versionstring."</strong>), please visit the ZPanel website and upgrade as soon as possible.";
-		} else {
-			$versioninfo = "Thank you, You are currently running the latest stable release of ZPanel!";
-		}
+		$content = $handle;	
 	}
-	echo $versioninfo;
+	echo $content;
 	return;
 }
 

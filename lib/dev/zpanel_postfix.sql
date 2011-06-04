@@ -18,7 +18,7 @@ SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 --
 -- Database: `zpanel_postfix`
 --
-CREATE DATABASE `zpanel_postifx`;
+CREATE DATABASE `zpanel_postfix`;
 USE `zpanel_postfix`;
 
 -- --------------------------------------------------------
