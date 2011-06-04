@@ -388,4 +388,5 @@ $lang['395'] = "There was an error updating the cron job";
 $lang['396'] = "FROM HTPASSWD ENTRY: ";
 $lang['397'] = "FROM: ";
 $lang['398'] = "htaccess file cannot be found in the selected directory.<br><br>Delete and recreate this directory entry to generate a new htaccess file.";
+$lang['399'] = "Shared Domains";
 ?>

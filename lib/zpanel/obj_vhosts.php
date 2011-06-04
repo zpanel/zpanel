@@ -39,6 +39,14 @@ $activedomains = DataExchange("r", $z_db_name, $sql);
 $rowactivedomains = mysql_fetch_assoc($activedomains);
 $totalactivedomains = DataExchange("t", $z_db_name, $sql);
 
+#get shared domain list
+$SharedDomains = array();
+$a = GetSystemOption('shared_domains');
+$a = explode(';', $a);
+foreach ($a as $b){
+$SharedDomains[] = $b;
+}
+
 
 
 if ($_POST['inAction'] == 'NewDomain') {
@@ -69,29 +77,31 @@ if ($_POST['inAction'] == 'NewDomain') {
         header("location: " . GetNormalModuleURL($returnurl) . "&r=alreadyexists");
         exit;
     }
-    # Check to make sure user not adding a subdomain and blocks stealing of subdomains....
-    if (substr_count($domain, ".") > 1) {
-        $part = explode('.', $domain);
-        foreach ($part as $check) {
-            if (strlen($check) > 3) {
-                $sql = "SELECT * FROM z_vhosts WHERE vh_name_vc LIKE '%" . $check . "%' AND vh_type_in !='2' AND vh_deleted_ts IS NULL";
-                $checkdomains = DataExchange("r", $z_db_name, $sql);
-                while ($rowcheckdomains = mysql_fetch_assoc($checkdomains)) {
-                    $subpart = explode('.', $rowcheckdomains['vh_name_vc']);
-                    foreach ($subpart as $subcheck) {
-                        if (strlen($subcheck) > 3) {
-                            if ($subcheck == $check) {
-                                if (substr($domain, -7) == substr($rowcheckdomains['vh_name_vc'], -7)) {
-                                    header("location: " . GetNormalModuleURL($returnurl) . "&r=nosub");
-                                    exit;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
+	# Check to make sure user not adding a subdomain and blocks stealing of subdomains....
+	if(substr_count($domain,".") > 1){
+		$part = explode('.', $domain);
+    	foreach($part as $check){
+			if (!in_array($check, $SharedDomains)){
+				if (strlen($check) > 3){
+				$sql = "SELECT * FROM z_vhosts WHERE vh_name_vc LIKE '%" .$check. "%' AND vh_type_in !='2' AND vh_deleted_ts IS NULL";
+				$checkdomains = DataExchange("r",$z_db_name,$sql);
+					while($rowcheckdomains = mysql_fetch_assoc($checkdomains)){
+						$subpart = explode('.', $rowcheckdomains['vh_name_vc']);
+						foreach($subpart as $subcheck){
+							if (strlen($subcheck) > 3){
+								if ($subcheck == $check){
+									if(substr($domain, -7) == substr($rowcheckdomains['vh_name_vc'], -7)){
+									header("location: " .GetNormalModuleURL($returnurl). "&r=nosub");
+									exit;
+									}
+								}
+							}
+						}
+					}
+				}
+    		}	
+		}
+	} 
     # Check to see if its a new home directory or use a current one...
     if ($_POST['inAutoHome'] == 1) {
         $homedirectoy_to_use = "/" . str_replace(".", "_", Cleaner('i', $domain));
@@ -408,28 +418,30 @@ if ($_POST['inAction'] == 'NewParkedDomain') {
         exit;
     }
     # Check to make sure user not adding a subdomain and blocks stealing of subdomains....
-    if (substr_count($domain, ".") > 1) {
-        $part = explode('.', $domain);
-        foreach ($part as $check) {
-            if (strlen($check) > 3) {
-                $sql = "SELECT * FROM z_vhosts WHERE vh_name_vc LIKE '%" . $check . "%' AND vh_type_in !='2' AND vh_deleted_ts IS NULL";
-                $checkdomains = DataExchange("r", $z_db_name, $sql);
-                while ($rowcheckdomains = mysql_fetch_assoc($checkdomains)) {
-                    $subpart = explode('.', $rowcheckdomains['vh_name_vc']);
-                    foreach ($subpart as $subcheck) {
-                        if (strlen($subcheck) > 3) {
-                            if ($subcheck == $check) {
-                                if (substr($domain, -7) == substr($rowcheckdomains['vh_name_vc'], -7)) {
-                                    header("location: " . GetNormalModuleURL($returnurl) . "&r=nosub");
-                                    exit;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
+	if(substr_count($domain,".") > 1){
+		$part = explode('.', $domain);
+    	foreach($part as $check){
+			if (!in_array($check, $SharedDomains)){
+				if (strlen($check) > 3){
+				$sql = "SELECT * FROM z_vhosts WHERE vh_name_vc LIKE '%" .$check. "%' AND vh_type_in !='2' AND vh_deleted_ts IS NULL";
+				$checkdomains = DataExchange("r",$z_db_name,$sql);
+					while($rowcheckdomains = mysql_fetch_assoc($checkdomains)){
+						$subpart = explode('.', $rowcheckdomains['vh_name_vc']);
+						foreach($subpart as $subcheck){
+							if (strlen($subcheck) > 3){
+								if ($subcheck == $check){
+									if(substr($domain, -7) == substr($rowcheckdomains['vh_name_vc'], -7)){
+									header("location: " .GetNormalModuleURL($returnurl). "&r=nosub");
+									exit;
+									}
+								}
+							}
+						}
+					}
+				}
+    		}	
+		}
+	} 
     $sql = "SELECT * FROM z_vhosts WHERE vh_name_vc='" . $domain . "' AND vh_deleted_ts IS NULL";
     $activedomains = DataExchange("r", $z_db_name, $sql);
     $rowactivedomains = mysql_fetch_assoc($activedomains);

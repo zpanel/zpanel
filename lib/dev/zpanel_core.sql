@@ -523,7 +523,8 @@ INSERT INTO `z_settings` (`st_id_pk`, `st_name_vc`, `st_value_tx`, `st_desc_tx`,
 (48, 'zpanel_lockdown', '0', 'Enable Zpanel Lockdown, Admins Only', '392', 'text', '', 1),
 (49, 'htpasswd_exe', 'htpasswd', 'Path to htpasswd.exe for potecting directories with .htaccess', NULL, 'text', NULL, NULL),
 (50, 'lsn_apache', 'apache2', '*NIX Service name for Apache', NULL, 'text', NULL, 0),
-(51, 'lsn_proftpd', 'proftpd', '*NIX Service name for ProFTPd', NULL, 'text', NULL, 0);
+(51, 'lsn_proftpd', 'proftpd', '*NIX Service name for ProFTPd', NULL, 'text', NULL, 0),
+(52, 'shared_domains', 'no-ip;dydns', 'Domains entered here can be shared across multiple accounts. Seperate domains with ; example: no-ip;dydns;test', '399', 'text', NULL, 1);
 
 -- --------------------------------------------------------
 
