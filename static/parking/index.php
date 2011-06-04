@@ -150,7 +150,7 @@
         <div id="header">
             <div id="header_top"></div>
             <div id="header_logo" class="center">
-                <a class="header_logo" href="http://www.zpanel.co.uk/" target="_blank">
+                <a class="header_logo" href="http://www.zpanelcp.com/" target="_blank">
                     <img src="data:image/png;base64,
                          iVBORw0KGgoAAAANSUhEUgAAAMYAAAAyCAYAAAAHmKRSAAAACXBIWXMAAAsSAAALEgHS3X78AAAABGdBTUEAALGOfPtRkwAAACBj
                          SFJNAAB6JQAAgIMAAPn/AACA6QAAdTAAAOpgAAA6mAAAF2+SX8VGAAAxzklEQVR42mL8//8/A6ng9tvfDOQCJkYGhvp97xl81bkZ
