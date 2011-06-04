@@ -716,6 +716,68 @@ if ($bandwidthdisabled == 1) {
 
 echo "\r\n\r\n";
 
+
+# Mod_bw bandwitdh and connection limiting apache module
+# Get all vhost records that have the modified flag for mod_bw
+$sqlvhosts = "SELECT * FROM zpanel_core.z_accounts JOIN (zpanel_core.z_quotas, zpanel_core.z_vhosts, zpanel_core.z_packages) ON (z_accounts.ac_package_fk=z_quotas.qt_package_fk AND z_accounts.ac_id_pk=z_vhosts.vh_acc_fk AND z_accounts.ac_package_fk=z_packages.pk_id_pk) WHERE (z_vhosts.vh_deleted_ts IS NULL) AND (z_vhosts.vh_type_in<>3) AND (z_quotas.qt_modified_in = 1)";
+$resultvhosts = mysql_query($sqlvhosts) or die('SQL error from daemon.php mod_bw section around line 690 - ' . mysql_error());
+while ($rowvhosts = mysql_fetch_array($resultvhosts)) {
+	$search = $rowvhosts['vh_name_vc'];
+    $user = $rowvhosts['ac_user_vc'];
+    $startpos = strpos($vhostfile, "# DOMAIN: $search");
+    $endpos = strpos($vhostfile, "# END DOMAIN: $search");
+    $endposlength = "# END DOMAIN: $search";
+    $endposlength = strlen($endposlength);
+    $vhostrecord = substr($vhostfile, $startpos, ($endpos - $startpos) + $endposlength);
+	$replacementtest = "!(.*)Include conf/mod_bw/mod_bw_(.*).conf!";
+    $matchresult = preg_match($replacementtest, $vhostrecord, $matches);
+	# Insert the mod_bw config for the first time if mod_bw is enabled for the package
+	if(empty($matchresult)){
+		if ($rowvhosts['qt_bwenabled_in'] == 1){
+		$find = '/<virtualhost \*\:80>/';
+		preg_match($find, $vhostrecord, $matches);
+		$replacement = $matches[0] ."
+Include conf/mod_bw/mod_bw_". $rowvhosts['pk_name_vc'] .".conf";
+
+    $newvhostrecord = preg_replace($find, $replacement, $vhostrecord);
+    $vhostfile = substr_replace($vhostfile, $newvhostrecord, $startpos, ($endpos - $startpos) + $endposlength);
+    $edited = 1;
+		}
+	} else {
+	# Mod_bw config exists and is enabled and has been modified.
+		if ($rowvhosts['qt_bwenabled_in'] == 1){
+		# If there is a change in the package
+		$find = '!(.*)Include conf/mod_bw/mod_bw_(.*)\.conf!';
+		$matchresult = preg_match($find, $vhostrecord, $matches);
+			if(!empty($matchresult)){
+				$replacement = "Include conf/mod_bw/mod_bw_". $rowvhosts['pk_name_vc'] .".conf";
+			}
+		# If mod_bw needs to be re-enabled
+		$find = '!(.*)Include conf/mod_bw/mod_bw_(.*)\.conf!';
+		$matchresult = preg_match($find, $vhostrecord, $matches);
+			if(!empty($matchresult)){
+				$replacement = "Include conf/mod_bw/mod_bw_". $rowvhosts['pk_name_vc'] .".conf";
+			}
+		} else {
+		# Mod_bw has been disabled for vhost 
+		$find = '!(.*)Include conf/mod_bw/mod_bw_(.*)\.conf!';
+		$matchresult = preg_match($find, $vhostrecord, $matches);
+			if(!empty($matchresult)){
+			$replacement = "#Include conf/mod_bw/mod_bw_". $rowvhosts['pk_name_vc'] .".conf";
+			}
+		}
+    $newvhostrecord = preg_replace($find, $replacement, $vhostrecord);
+    $vhostfile = substr_replace($vhostfile, $newvhostrecord, $startpos, ($endpos - $startpos) + $endposlength);
+    $edited = 1;
+	}
+}
+
+# Update the quota table and set mofified flag to 0 for all packages
+$sqlqtmodified = "UPDATE zpanel_core.z_quotas SET qt_modified_in = 0";
+$resultqtmodified = mysql_query($sqlqtmodified) or die('SQL error from daemon.php mod_bw section around line 743 - ' . mysql_error());
+
+echo "\r\n\r\n";
+
 #  Changes and Restart
 //file operations as per normal
 if ($edited == 1) {

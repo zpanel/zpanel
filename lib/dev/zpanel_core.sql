@@ -427,6 +427,15 @@ CREATE TABLE IF NOT EXISTS `z_quotas` (
   `qt_mysql_in` int(6) DEFAULT '0',
   `qt_diskspace_bi` bigint(20) DEFAULT '0',
   `qt_bandwidth_bi` bigint(20) DEFAULT '0',
+  `qt_bwenabled_in` INT(1) DEFAULT '0', 
+  `qt_dlenabled_in` int(1) DEFAULT '0',
+  `qt_totalbw_fk` int(30) DEFAULT NULL,
+  `qt_minbw_fk` int(30) DEFAULT NULL,
+  `qt_maxcon_fk` int(30) DEFAULT NULL,
+  `qt_filesize_fk` int(30) DEFAULT NULL,
+  `qt_filespeed_fk` int(30) DEFAULT NULL,
+  `qt_filetype_vc` varchar(30) NOT NULL DEFAULT '*',
+  `qt_modified_in` int(1) DEFAULT '0',
   PRIMARY KEY (`qt_id_pk`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=3 ;
 
@@ -437,6 +446,33 @@ CREATE TABLE IF NOT EXISTS `z_quotas` (
 INSERT INTO `z_quotas` (`qt_id_pk`, `qt_package_fk`, `qt_domains_in`, `qt_subdomains_in`, `qt_parkeddomains_in`, `qt_mailboxes_in`, `qt_fowarders_in`, `qt_distlists_in`, `qt_ftpaccounts_in`, `qt_mysql_in`, `qt_diskspace_bi`, `qt_bandwidth_bi`) VALUES
 (1, 1, 3, 10, 5, 10, 100, 5, 50, 50, 2048000000, 10240000000),
 (5, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1024000000);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `z_throttle`
+--
+
+CREATE TABLE IF NOT EXISTS `z_throttle` (
+  `tr_id_pk` int(6) unsigned NOT NULL AUTO_INCREMENT,
+  `tr_package_fk` int(6) DEFAULT NULL,
+  `tr_bwenabled_in` int(1) DEFAULT '0',
+  `tr_dlenabled_in` int(1) DEFAULT '0',
+  `tr_totalbw_fk` int(30) DEFAULT NULL,
+  `tr_minbw_fk` int(30) DEFAULT NULL,
+  `tr_maxcon_fk` int(30) DEFAULT NULL,
+  `tr_filesize_fk` int(30) DEFAULT NULL,
+  `tr_filespeed_fk` int(30) DEFAULT NULL,
+  `tr_filetype_vc` varchar(30) NOT NULL DEFAULT '*',
+  PRIMARY KEY (`tr_id_pk`)
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=2 ;
+
+--
+-- Dumping data for table `z_throttle`
+--
+
+INSERT INTO `z_throttle` (`tr_id_pk`, `tr_package_fk`, `tr_bwenabled_in`, `tr_dlenabled_in`, `tr_totalbw_fk`, `tr_minbw_fk`, `tr_maxcon_fk`, `tr_filesize_fk`, `tr_filespeed_fk`, `tr_filetype_vc`) VALUES
+(1, 1, 0, 0, 0, 0, 0, 0, 10240, '');
 
 -- --------------------------------------------------------
 
@@ -524,7 +560,8 @@ INSERT INTO `z_settings` (`st_id_pk`, `st_name_vc`, `st_value_tx`, `st_desc_tx`,
 (49, 'htpasswd_exe', 'htpasswd', 'Path to htpasswd.exe for potecting directories with .htaccess', NULL, 'text', NULL, NULL),
 (50, 'lsn_apache', 'apache2', '*NIX Service name for Apache', NULL, 'text', NULL, 0),
 (51, 'lsn_proftpd', 'proftpd', '*NIX Service name for ProFTPd', NULL, 'text', NULL, 0),
-(52, 'shared_domains', 'no-ip;dydns', 'Domains entered here can be shared across multiple accounts. Seperate domains with ; example: no-ip;dydns;test', '399', 'text', NULL, 1);
+(52, 'shared_domains', 'no-ip;dydns', 'Domains entered here can be shared across multiple accounts. Seperate domains with ; example: no-ip;dydns;test', '399', 'text', NULL, 1),
+(53, 'mod_bw', 'C:/ZPanel/bin/apache/conf/', 'Path to mod_bw configuration files for packages', NULL, 'text', NULL, 0);
 
 -- --------------------------------------------------------
 

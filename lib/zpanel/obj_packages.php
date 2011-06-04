@@ -80,6 +80,22 @@ if ($_POST['inAction'] == 'new') {
     DataExchange("w", $z_db_name, $sql);
     $sql = "INSERT INTO z_permissions (pr_package_fk) VALUES (" . $packageid['pk_id_pk'] . ");";
     DataExchange("w", $z_db_name, $sql);
+	
+	# Insert default mod_bw quota limits for package
+	$sql = "SELECT * FROM z_throttle WHERE tr_id_pk=1";
+    $throttledefaults = DataExchange("l", $z_db_name, $sql);
+	$sql = "UPDATE z_quotas SET qt_bwenabled_in = '".$throttledefaults['tr_bwenabled_in']."',
+								qt_dlenabled_in = '".$throttledefaults['tr_dlenabled_in']."',
+								qt_totalbw_fk   = '".$throttledefaults['tr_totalbw_fk']."',
+								qt_minbw_fk     = '".$throttledefaults['tr_minbw_fk']."',
+								qt_maxcon_fk    = '".$throttledefaults['tr_maxcon_fk']."',
+								qt_filesize_fk  = '".$throttledefaults['tr_filespeed_fk']."',
+								qt_filespeed_fk = '".$throttledefaults['tr_filespeed_fk']."',
+								qt_filetype_vc  = '".$throttledefaults['tr_filetype_vc']."',
+								qt_modified_in  = '1'
+								WHERE qt_package_fk  = '".$packageid['pk_id_pk']."'";
+							  
+	DataExchange("w",$z_db_name,$sql);
 
     header("location: " . $returnurl . "&r=ok");
     exit;
