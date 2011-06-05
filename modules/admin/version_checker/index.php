@@ -88,7 +88,7 @@ if ($ZPanelversion < $Version_Num) {
 }
 echo '</div><br>';
 echo '<fieldset><br><legend class="legendhead"><b>' . $lang['353'] . '</b></legend>
-		  	  <table class="version" border="0" cellspacing="0" cellpadding="0">';
+		  	  <table class="version" border="0" cellspacing="0" cellpadding="0"><tr><td>';
 if (empty($Announcements)) {
     echo '<div align="center">';
     echo '<b>' . $lang['354'] . '</b>';
@@ -96,7 +96,7 @@ if (empty($Announcements)) {
     echo '<b>&nbsp;&nbsp;' . $Announcements . '</b></font>';
 }
 echo '</div>';
-echo '</table><br></fieldset><br>';
+echo '</td></tr></table><br></fieldset><br>';
 echo '<fieldset><br><legend class="legendhead"><b>' . $lang['355'] . '</b></legend>';
 if (empty($devs)) {
     echo '<div align="center">';
