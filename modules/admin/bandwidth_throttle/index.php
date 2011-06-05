@@ -32,7 +32,7 @@ include('lang/' .GetPrefdLang($personalinfo['ap_language_vc']). '.php');
 if ($_SESSION['zUsername'] == 'zadmin'){
 
 $speedarray = array('-1', '0', '10240', '20480', '30720', '40960', '51200', '102400', '153600', '204800', '256000', '307200', '358400', '409600', '512000', '614400', '716800', '819200', '921600', '1048576');
-$filearray = array('0', '512000', '1048576', '5242880', '10485760', '52428800', '104857600');
+$filearray = array('0', '500', '1024', '5120', '10240', '51200', '102400');
 $connectionarray = array('0', '10', '25', '50', '75', '100', '150', '200', '250', '300', '400', '500', '1000', '2000', '3000', '4000', '5000', '10000');
 ?>
 
@@ -372,12 +372,12 @@ return $speed;
 
 function GetFileSizeModBW($size){
 if ($size == "0"){$size = "Any Size";}
-if ($size == "512000"){$size = ".5 MB";}
-if ($size == "1048576"){$size = "1 MB";}
-if ($size == "5242880"){$size = "5 MB";}
-if ($size == "10485760"){$size = "10 MB";}
-if ($size == "52428800"){$size = "50 MB";}
-if ($size == "104857600"){$size = "100 MB";}
+if ($size == "500"){$size = ".5 MB";}
+if ($size == "1024"){$size = "1 MB";}
+if ($size == "5120"){$size = "5 MB";}
+if ($size == "10240"){$size = "10 MB";}
+if ($size == "51200"){$size = "50 MB";}
+if ($size == "102400"){$size = "100 MB";}
 return $size;
 }
 
