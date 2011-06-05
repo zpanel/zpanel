@@ -106,7 +106,15 @@ if($_POST['inAction']=='EditPackage'){
 	# Write the package mod_bw .conf
 	if ($inUseBT == 1) {$inUseBT = "On";} else {$inUseBT = "Off";}
 	if ($inUseFT == 1) {$inUseFT = "On";} else {$inUseFT = "Off";}
-	$file = GetSystemOption('mod_bw') ."/mod_bw/mod_bw_" . $rowpackages['pk_name_vc'] . ".conf";
+	
+	if (!file_exists(GetSystemOption('mod_bw') ."mod_bw/")) {
+		mkdir(GetSystemOption('mod_bw') ."mod_bw/", 0777);
+			if (ShowServerPlatform() <> "Windows") {
+			@chmod(GetSystemOption('mod_bw') ."mod_bw/", 0777);
+			}
+	}
+	
+	$file = GetSystemOption('mod_bw') ."mod_bw/mod_bw_" . $rowpackages['pk_name_vc'] . ".conf";
 	if ($inUseFT == "On"){
 		$body = "BandwidthModule ".$inUseBT."
 ForceBandWidthModule ".$inUseBT."
@@ -127,6 +135,10 @@ BandWidthError 510";
 	$fp = @fopen($file,'w');
 	fwrite($fp,$body);
 	fclose($fp);
+
+	if (ShowServerPlatform() <> "Windows") {
+		@chmod($file, 0777);
+	}
 
 	# Log the package as modified so the daemon will make changes to vhosts.
 	$sql = "UPDATE z_quotas SET qt_modified_in = 1 WHERE qt_id_pk = ". $inQuotaID ."";

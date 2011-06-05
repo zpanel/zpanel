@@ -729,7 +729,7 @@ while ($rowvhosts = mysql_fetch_array($resultvhosts)) {
     $endposlength = "# END DOMAIN: $search";
     $endposlength = strlen($endposlength);
     $vhostrecord = substr($vhostfile, $startpos, ($endpos - $startpos) + $endposlength);
-	$replacementtest = "!(.*)Include conf/mod_bw/mod_bw_(.*).conf!";
+	$replacementtest = "!(.*)Include ". GetSystemOption('mod_bw') ."mod_bw/mod_bw_(.*).conf!";
     $matchresult = preg_match($replacementtest, $vhostrecord, $matches);
 	# Insert the mod_bw config for the first time if mod_bw is enabled for the package
 	if(empty($matchresult)){
@@ -737,7 +737,7 @@ while ($rowvhosts = mysql_fetch_array($resultvhosts)) {
 		$find = '/<virtualhost \*\:80>/';
 		preg_match($find, $vhostrecord, $matches);
 		$replacement = $matches[0] ."
-Include conf/mod_bw/mod_bw_". $rowvhosts['pk_name_vc'] .".conf";
+Include ". GetSystemOption('mod_bw') ."mod_bw/mod_bw_". $rowvhosts['pk_name_vc'] .".conf";
 
     $newvhostrecord = preg_replace($find, $replacement, $vhostrecord);
     $vhostfile = substr_replace($vhostfile, $newvhostrecord, $startpos, ($endpos - $startpos) + $endposlength);
@@ -747,23 +747,23 @@ Include conf/mod_bw/mod_bw_". $rowvhosts['pk_name_vc'] .".conf";
 	# Mod_bw config exists and is enabled and has been modified.
 		if ($rowvhosts['qt_bwenabled_in'] == 1){
 		# If there is a change in the package
-		$find = '!(.*)Include conf/mod_bw/mod_bw_(.*)\.conf!';
+		$find = "!(.*)Include ". GetSystemOption('mod_bw') ."mod_bw/mod_bw_(.*)\.conf!";
 		$matchresult = preg_match($find, $vhostrecord, $matches);
 			if(!empty($matchresult)){
-				$replacement = "Include conf/mod_bw/mod_bw_". $rowvhosts['pk_name_vc'] .".conf";
+				$replacement = "Include ". GetSystemOption('mod_bw') ."mod_bw/mod_bw_". $rowvhosts['pk_name_vc'] .".conf";
 			}
 		# If mod_bw needs to be re-enabled
-		$find = '!(.*)Include conf/mod_bw/mod_bw_(.*)\.conf!';
+		$find = "!(.*)Include ". GetSystemOption('mod_bw') ."mod_bw/mod_bw_(.*)\.conf!";
 		$matchresult = preg_match($find, $vhostrecord, $matches);
 			if(!empty($matchresult)){
-				$replacement = "Include conf/mod_bw/mod_bw_". $rowvhosts['pk_name_vc'] .".conf";
+				$replacement = "Include ". GetSystemOption('mod_bw') ."mod_bw/mod_bw_". $rowvhosts['pk_name_vc'] .".conf";
 			}
 		} else {
 		# Mod_bw has been disabled for vhost 
-		$find = '!(.*)Include conf/mod_bw/mod_bw_(.*)\.conf!';
+		$find = "!(.*)Include ". GetSystemOption('mod_bw') ."mod_bw/mod_bw_(.*)\.conf!";
 		$matchresult = preg_match($find, $vhostrecord, $matches);
 			if(!empty($matchresult)){
-			$replacement = "#Include conf/mod_bw/mod_bw_". $rowvhosts['pk_name_vc'] .".conf";
+			$replacement = "#Include ". GetSystemOption('mod_bw') ."mod_bw/mod_bw_". $rowvhosts['pk_name_vc'] .".conf";
 			}
 		}
     $newvhostrecord = preg_replace($find, $replacement, $vhostrecord);
@@ -787,7 +787,7 @@ if ($edited == 1) {
     if ($writesuccess) {
         TriggerLog(1, $b = "> Changes successfully written to vhost file for \'bandwidth exceeded\'");
         if ($restartapache = "Yes") {
-            echo "restating \r\n";
+            echo "restarting \r\n";
             if (IsWindows() == true) {
                 system("C:\\ZPanel\\bin\\apache\\bin\\httpd.exe -k restart -n \"Apache\"");
             } else {

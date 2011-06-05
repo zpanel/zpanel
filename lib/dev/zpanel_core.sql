@@ -561,7 +561,7 @@ INSERT INTO `z_settings` (`st_id_pk`, `st_name_vc`, `st_value_tx`, `st_desc_tx`,
 (50, 'lsn_apache', 'apache2', '*NIX Service name for Apache', NULL, 'text', NULL, 0),
 (51, 'lsn_proftpd', 'proftpd', '*NIX Service name for ProFTPd', NULL, 'text', NULL, 0),
 (52, 'shared_domains', 'no-ip;dydns', 'Domains entered here can be shared across multiple accounts. Seperate domains with ; example: no-ip;dydns;test', '399', 'text', NULL, 1),
-(53, 'mod_bw', 'C:/ZPanel/bin/apache/conf/', 'Path to mod_bw configuration files for packages', NULL, 'text', NULL, 0);
+(53, 'mod_bw', '/etc/zpanel/conf/', 'Path to mod_bw configuration files for packages', NULL, 'text', NULL, 0);
 
 -- --------------------------------------------------------
 
