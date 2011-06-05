@@ -41,7 +41,7 @@ if ((isset($_GET['r'])) && ($_GET['r'] == 'ok')) {
 }
 echo "<br><br>";
 ?>
-<form name="frmReport" id="frmReport" method="post" action="http://bugs.zpanel.co.uk/bugapi.php?secure=<?php echo base64_encode("" . $returnurl . "|||" . $zpanelurl . "|||" . $serversoft . "|||" . $apacheversion . "|||" . $phpversion . "|||" . $mysqlversion . "|||" . $zpanelversion . ""); ?>">
+<form name="frmReport" id="frmReport" target="_blank" method="post" action="http://api.zpanelcp.com/api/bugapi.php?secure=<?php echo base64_encode("" . $returnurl . "|||" . $zpanelurl . "|||" . $serversoft . "|||" . $apacheversion . "|||" . $phpversion . "|||" . $mysqlversion . "|||" . $zpanelversion . ""); ?>">
     <table class="zform">
         <tbody><tr>
                 <th><?php echo $lang['56']; ?></th>
