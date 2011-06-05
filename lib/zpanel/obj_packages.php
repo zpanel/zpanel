@@ -39,7 +39,7 @@ if ($_POST['inAction'] == 'new') {
         header("location: " . GetNormalModuleURL($returnurl) . "&r=blank");
         exit;
     }
-# If the user submitted a 'new' request then we will simply add the package to the database...
+	# If the user submitted a 'new' request then we will simply add the package to the database...
     $sql = "INSERT INTO z_packages (pk_reseller_fk,
 									pk_name_vc,
 									pk_enablephp_in,
@@ -103,7 +103,7 @@ if ($_POST['inAction'] == 'new') {
 
 
 if ($_POST['inAction'] == 'edit') {
-# If the user submitted a 'new' request then we will simply add the package to the database...
+	# User has choosen to edit a package...
     $sql = "UPDATE z_packages SET pk_name_vc='" . Cleaner('i', $_POST['inPackageName']) . "',
 								pk_enablephp_in=" . GetCheckboxValue($_POST['inEnablePHP']) . ",
 								pk_enablecgi_in=" . GetCheckboxValue($_POST['inEnableCGI']) . " WHERE pk_id_pk=" . $_POST['inPackageID'] . "";
@@ -125,7 +125,7 @@ if ($_POST['inAction'] == 'edit') {
 }
 
 if ($_POST['inAction'] == 'delete') {
-# User has choosen to delete a package...
+	# User has choosen to delete a package...
     do {
         if (isset($_POST['inEdit_' . $rowpackages['pk_id_pk']])) {
             header("location: " . $returnurl . "&edit=" . $rowpackages['pk_id_pk'] . "");

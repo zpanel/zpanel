@@ -139,7 +139,8 @@ Options ExecCGI -Indexes
     # Now we get all error pages and prepare them for the vhost container...
     $errorpages = "ErrorDocument 403 /_errorpages/403.html
 ErrorDocument 404 /_errorpages/404.html
-ErrorDocument 500 /_errorpages/500.html";
+ErrorDocument 500 /_errorpages/500.html
+ErrorDocument 510 /_errorpages/510.html";
 
     if (!file_exists(GetSystemOption('hosted_dir') . $useraccount['ac_user_vc'] . $homedirectoy_to_use . '/_errorpages/')) {
         mkdir(GetSystemOption('hosted_dir') . $useraccount['ac_user_vc'] . $homedirectoy_to_use . "/_errorpages/", 0777);
@@ -147,6 +148,7 @@ ErrorDocument 500 /_errorpages/500.html";
         @copy(GetSystemOption('static_dir') . "errorpages/403.html", GetSystemOption('hosted_dir') . $useraccount['ac_user_vc'] . $homedirectoy_to_use . "/_errorpages" . "/403.html");
         @copy(GetSystemOption('static_dir') . "errorpages/404.html", GetSystemOption('hosted_dir') . $useraccount['ac_user_vc'] . $homedirectoy_to_use . "/_errorpages" . "/404.html");
         @copy(GetSystemOption('static_dir') . "errorpages/500.html", GetSystemOption('hosted_dir') . $useraccount['ac_user_vc'] . $homedirectoy_to_use . "/_errorpages" . "/500.html");
+        @copy(GetSystemOption('static_dir') . "errorpages/510.html", GetSystemOption('hosted_dir') . $useraccount['ac_user_vc'] . $homedirectoy_to_use . "/_errorpages" . "/510.html");
 
         # If the OS is Linux lets chmod them so they have full access
         if (ShowServerPlatform() <> "Windows") {
@@ -155,6 +157,7 @@ ErrorDocument 500 /_errorpages/500.html";
             @chmod(GetSystemOption('hosted_dir') . $useraccount['ac_user_vc'] . $homedirectoy_to_use . "/_errorpages" . "/403.html", 0777);
             @chmod(GetSystemOption('hosted_dir') . $useraccount['ac_user_vc'] . $homedirectoy_to_use . "/_errorpages" . "/404.html", 0777);
             @chmod(GetSystemOption('hosted_dir') . $useraccount['ac_user_vc'] . $homedirectoy_to_use . "/_errorpages" . "/500.html", 0777);
+            @chmod(GetSystemOption('hosted_dir') . $useraccount['ac_user_vc'] . $homedirectoy_to_use . "/_errorpages" . "/510.html", 0777);
         }
     }
 
@@ -251,6 +254,10 @@ CustomLog \"" . GetSystemOption('logfile_dir') . $useraccount['ac_user_vc'] . "/
             @chmod(GetSystemOption('hosted_dir') . $useraccount['ac_user_vc'] . $homedirectoy_to_use . "/index.html", 0777);
         }
     }
+	
+	# Log the package as modified so the daemon will make changes to vhosts.
+	$sql = "UPDATE z_quotas SET qt_modified_in = 1 WHERE qt_id_pk = ". $quotainfo['qt_id_pk'] ."";
+	DataExchange("w",$z_db_name,$sql);
 
     # Now we add some infomation to the system log.
     TriggerLog($useraccount['ac_id_pk'], $b = "New domain (vhost) has been added by the user (" . Cleaner('i', $_POST['inDomain']) . ").");
@@ -391,6 +398,10 @@ CustomLog \"" . GetSystemOption('logfile_dir') . $useraccount['ac_user_vc'] . "/
             @chmod(GetSystemOption('hosted_dir') . $useraccount['ac_user_vc'] . $homedirectoy_to_use . "/index.html", 0777);
         }
     }
+
+	# Log the package as modified so the daemon will make changes to vhosts.
+	$sql = "UPDATE z_quotas SET qt_modified_in = 1 WHERE qt_id_pk = ". $quotainfo['qt_id_pk'] ."";
+	DataExchange("w",$z_db_name,$sql);
 
     # Now we add some infomation to the system log.
     TriggerLog($useraccount['ac_id_pk'], $b = "New sub-domain (vhost) has been added by the user (" . Cleaner('i', $domain) . ").");

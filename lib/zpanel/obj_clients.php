@@ -164,6 +164,11 @@ if ($_POST['inAction'] == 'new') {
 
 if ($_POST['inAction'] == 'edit') {
 # If the user submitted an 'edit' request then we will simply update the accounts and personal tables in the database...
+	# Get the old package id to check if it has changed.
+	$sql = "SELECT * FROM z_accounts WHERE ac_id_pk=" . $_POST['inClientID'] . "";
+	$listoldpackage = DataExchange("r", $z_db_name, $sql);
+	$rowoldpackage = mysql_fetch_assoc($listoldpackage);
+	
     $sql = "UPDATE z_accounts SET ac_package_fk=" . Cleaner('i', $_POST['inPackage']) . " WHERE ac_id_pk=" . $_POST['inClientID'] . "";
     DataExchange("w", $z_db_name, $sql);
     $sql = "UPDATE z_personal SET ap_fullname_vc='" . Cleaner('i', $_POST['inFullName']) . "',
@@ -187,6 +192,13 @@ if ($_POST['inAction'] == 'edit') {
         zapi_mysqluser_setpass($resetforuser, Cleaner("i", $_POST['inNewPassword']), $zdb);
         TriggerLog($useraccount['ac_id_pk'], "Account password for (" . $resetforuser . ") has been reset by the account admin.");
     }
+		
+	# Log the package as modified so the daemon will make changes to vhosts if the client was moved to a different package.
+	if ($rowoldpackage['ac_package_fk'] != Cleaner('i', $_POST['inPackage'])){
+	$sql = "UPDATE z_quotas SET qt_modified_in = 1 WHERE qt_package_fk = ". Cleaner('i', $_POST['inPackage']) ."";
+	DataExchange("w",$z_db_name,$sql);
+	}
+		
     $returnurl = GetNormalModuleURL($returnurl) . "&r=ok";
     TriggerLog($useraccount['ac_id_pk'], $b = "User account ID: " . $_POST['inClientID'] . " was updated.");
     header("location: " . $returnurl . "");
