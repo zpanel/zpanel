@@ -328,7 +328,7 @@ if ($totalpackages <> 0){
       <td><?php echo Cleaner('o',$rowpackages['pk_name_vc']); ?></td>
 	  <td><?php echo GetSpeedModBW(Cleaner('o',$rowpackages['qt_totalbw_fk'])); ?></td>
 	  <td><?php echo GetSpeedModBW(Cleaner('o',$rowpackages['qt_minbw_fk'])); ?></td>
-	  <td><?php echo Cleaner('o',$rowpackages['qt_maxcon_fk']); ?></td>
+	  <td><?php echo GetConnectionBW(Cleaner('o',$rowpackages['qt_maxcon_fk'])); ?></td>
 	  <td><?php echo $dl; ?></td>
 	  <td><?php echo GetFileSizeModBW(Cleaner('o',$rowpackages['qt_filesize_fk'])); ?></td>
 	  <td><?php echo GetSpeedModBW(Cleaner('o',$rowpackages['qt_filespeed_fk'])); ?></td>
@@ -354,18 +354,18 @@ if ($speed == "20480"){$speed = "20 kbs";}
 if ($speed == "30720"){$speed = "30 kbs";}
 if ($speed == "40960"){$speed = "40 kbs";}
 if ($speed == "51200"){$speed = "50 kbs";}
-if ($speed == "102400"){$speed = "100 Kbs";}
-if ($speed == "153600"){$speed = "150 Kbs";}
-if ($speed == "204800"){$speed = "200 Kbs";}
-if ($speed == "256000"){$speed = "250 Kbs";}
-if ($speed == "307200"){$speed = "300 Kbs";}
-if ($speed == "358400"){$speed = "350 Kbs";}
-if ($speed == "409600"){$speed = "400 Kbs";}
-if ($speed == "512000"){$speed = "500 Kbs";}
-if ($speed == "614400"){$speed = "600 Kbs";}
-if ($speed == "716800"){$speed = "700 Kbs";}
-if ($speed == "819200"){$speed = "800 Kbs";}
-if ($speed == "921600"){$speed = "900 Kbs";}
+if ($speed == "102400"){$speed = "100 kbs";}
+if ($speed == "153600"){$speed = "150 kbs";}
+if ($speed == "204800"){$speed = "200 kbs";}
+if ($speed == "256000"){$speed = "250 kbs";}
+if ($speed == "307200"){$speed = "300 kbs";}
+if ($speed == "358400"){$speed = "350 kbs";}
+if ($speed == "409600"){$speed = "400 kbs";}
+if ($speed == "512000"){$speed = "500 kbs";}
+if ($speed == "614400"){$speed = "600 kbs";}
+if ($speed == "716800"){$speed = "700 kbs";}
+if ($speed == "819200"){$speed = "800 kbs";}
+if ($speed == "921600"){$speed = "900 kbs";}
 if ($speed == "1048576"){$speed = "1 Mbs";}
 return $speed;
 }
