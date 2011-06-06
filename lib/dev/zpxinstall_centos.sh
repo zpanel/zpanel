@@ -174,6 +174,9 @@ echo "\$zdb = @mysql_pconnect(\$z_db_host, \$z_db_user, \$z_db_pass) or trigger_
 echo "?>" >> /etc/zpanel/conf/zcnf.php
 echo "  ^ Done"
 
+# Set phpmyadmin freindly permissions on the config.inc.php (so phpMyAdmin doesn't complain)
+chmod 644 /etc/zpanel/apps/phpmyadmin/config.inc.php
+
 # Setup the default virtual host for the control panel
 clear
 echo "ENTER THE DOMAIN/SUBDOMAIN THAT WILL HOST ZPANEL EG. 'CONTROL.YOURDOMAIN.COM'"
@@ -199,11 +202,6 @@ echo "    	AllowOverride None" >> /etc/zpanel/conf/httpd-vhosts.conf
 echo "    	Order allow,deny" >> /etc/zpanel/conf/httpd-vhosts.conf
 echo "    	Allow from all" >> /etc/zpanel/conf/httpd-vhosts.conf
 echo "	</Directory>" >> /etc/zpanel/conf/httpd-vhosts.conf
-echo "  	<location /modbw>" >> /etc/zpanel/conf/httpd-vhosts.conf
-echo "    	SetHandler modbw-handler" >> /etc/zpanel/conf/httpd-vhosts.conf
-echo " 	</location>" >> /etc/zpanel/conf/httpd-vhosts.conf
-echo " " >> /etc/zpanel/conf/httpd-vhosts.conf
-echo "	Header add X-Hello \"time %D\"" >> /etc/zpanel/conf/httpd-vhosts.conf
 echo " " >> /etc/zpanel/conf/httpd-vhosts.conf
 echo "	</VirtualHost>" >> /etc/zpanel/conf/httpd-vhosts.conf
 echo " " >> /etc/zpanel/conf/httpd-vhosts.conf
@@ -215,19 +213,25 @@ service httpd restart
 
 echo "127.0.0.1			${domain}">> /etc/hosts
 
-clear
 echo "===================================================="
 echo "ZPanel has now been installed!"
 echo " "
-echo "IMPORTANT, ENSURE YOU MAKE NOTE OF THESE SETTINGS!!!"
+echo "IMPORTANT: Ensure you make a note of these settings"
+echo "           for future reference and to access the"
+echo "           control panel for the first time..."
 echo " "
-echo "      NEW MYSQL ROOT ACCOUNT"
-echo "      =============================================="
-echo "      PASSWORD: ${password}"
+echo "           NEW MYSQL ROOT ACCOUNT"
+echo "           =============================================="
+echo "           PASSWORD: ${password}"
 echo " "
-echo "      ZPANEL ADMIN ACCOUNT LOGIN"
-echo "      =============================================="
-echo "      CONTROL PANEL URL: http://${domain}"
-echo "      USERNAME: zadmin"
-echo "      PASSWORD: zadmin"
+echo "           ZPANEL ADMIN ACCOUNT LOGIN"
+echo "           =============================================="
+echo "           CONTROL PANEL URL: http://${domain}"
+echo "           USERNAME: zadmin"
+echo "           PASSWORD: zadmin"
+echo ""
+echo "REQUIRED: You must still add a crontab entry to enable"
+echo "          the Zpanel daemon to run hourly, the line to"
+echo "          add to the crontabe (crontab -e) is as follows:"
+echo "          0 * * * * php /etc/zpanel/daemon.php
 
