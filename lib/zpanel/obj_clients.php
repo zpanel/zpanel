@@ -93,8 +93,6 @@ if ($_POST['inAction'] == 'new') {
 
     # Create a default FTP account if set in the system options...
     if (GetSystemOption('auto_ftpuser') == "true") {
-        zapi_ftpaccount_add(GetSystemOption('filezilla_root'), $username, $_POST['inPassword'], GetSystemOption('zpanel_version'), $directorytouse, $permissionset);
-
 
         # Get the current account ID for the new user...
         $acc_fk = $clientid['ac_id_pk'];
@@ -113,8 +111,6 @@ if ($_POST['inAction'] == 'new') {
 		<Option Name=\"DirDelete\">1</Option>
 		<Option Name=\"DirList\">1</Option>
 		<Option Name=\"DirSubdirs\">1</Option>";
-
-
 
         if ($existsftp < 1) {
             zapi_ftpaccount_add(GetSystemOption('filezilla_root'), $username, $password, GetSystemOption('zpanel_version'), ChangeSafeSlashesToWin(GetSystemOption('hosted_dir') . $username), $permissionset);
@@ -394,7 +390,7 @@ if ($_POST['inAction'] == 'delete') {
             if ($totalRows_ftpaccounts > 0) {
                 do {
                     # Go through and delete all FTP accounts that the user has setup.
-                    zapi_ftpaccount_remove(GetSystemOption('filezilla_root'), $username);
+                    zapi_ftpaccount_remove(GetSystemOption('filezilla_root'), $rowftpaccounts['ft_user_vc ']);
                     $total_deleted = ($total_deleted + 1);
                 } while ($rowftpaccounts = mysql_fetch_assoc($listftpaccounts));
                 # Then obviously we should go and reload FileZilla's configuration.... Due to removal of FTP accounts!
