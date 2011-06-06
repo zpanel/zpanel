@@ -1,5 +1,7 @@
 <?php
-
+ini_set("memory_limit", "64M");
+error_reporting(0); 
+set_time_limit(0); 
 /**
  *
  * ZPanel - A Cross-Platform Open-Source Web Hosting Control panel.
@@ -63,17 +65,32 @@ if ($totalmysql > 0) {
 TriggerLog($useraccount['ac_id_pk'], "User full hosting account backup was created.");
 
 # Now we send the output...
+$file = GetSystemOption('temp_dir') . $backupname . ".zip"; 
 header('Pragma: public');
 header('Expires: 0');
 header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
 header('Cache-Control: private', false);
-header('Content-Type: application/zip');
-header('Content-Disposition: attachment; filename=' . $backupname . '.zip');
+header('Content-Description: File Transfer');
 header('Content-Transfer-Encoding: binary');
-header('Content-Length: ' . filesize(GetSystemOption('temp_dir') . $backupname . '.zip ') . '');
-readfile(GetSystemOption('temp_dir') . $backupname . ".zip ");
+header('Content-Type: application/force-download'); 
+header('Content-Length: ' . filesize($file)); 
+header('Content-Disposition: attachment; filename=' . $backupname . '.zip');  
+readfile_chunked($file);
 unlink(GetSystemOption('temp_dir') . $backupname . ".zip ");
-exit();
+
+function readfile_chunked($filename) { 
+ $chunksize = 1*(1024*1024);
+ $buffer = ''; 
+ $handle = fopen($filename, 'rb'); 
+ if ($handle === false) { 
+   return false; 
+ } 
+ while (!feof($handle)) { 
+   $buffer = fread($handle, $chunksize); 
+   print $buffer; 
+ } 
+ return fclose($handle); 
+} 
 
 header("location: " . GetNormalModuleURL($returnurl) . "&r=ok");
 exit;
