@@ -1,11 +1,11 @@
 <?php
 //=======================================================================
-// File:	JPGRAPH_FLAGS.PHP
-// Description:	Class Jpfile. Handles plotmarks
-// Created: 	2003-06-28
-// Ver:		$Id: jpgraph_flags.php 957 2007-12-01 14:00:29Z ljp $
+// File:        JPGRAPH_FLAGS.PHP
+// Description: Class Jpfile. Handles plotmarks
+// Created:     2003-06-28
+// Ver:         $Id: jpgraph_flags.php 1106 2009-02-22 20:16:35Z ljp $
 //
-// Copyright (c) Aditus Consulting. All rights reserved.
+// Copyright (c) Asial Corporation. All rights reserved.
 //========================================================================
 
 //------------------------------------------------------------
@@ -258,115 +258,115 @@ class FlagImages {
 
     private $iFlagCount = -1;
     private $iFlagSetMap = array(
-	FLAGSIZE1 => 'flags_thumb35x35',
-	FLAGSIZE2 => 'flags_thumb60x60',
-	FLAGSIZE3 => 'flags_thumb100x100',
-	FLAGSIZE4 => 'flags'
-	);
+    FLAGSIZE1 => 'flags_thumb35x35',
+    FLAGSIZE2 => 'flags_thumb60x60',
+    FLAGSIZE3 => 'flags_thumb100x100',
+    FLAGSIZE4 => 'flags'
+    );
 
     private $iFlagData ;
     private $iOrdIdx=array();
 
     function FlagImages($aSize=FLAGSIZE1) {
-	switch($aSize) {
-	    case FLAGSIZE1 :
-	    case FLAGSIZE2 :
-	    case FLAGSIZE3 :
-	    case FLAGSIZE4 :
-		$file = dirname(__FILE__).'/'.$this->iFlagSetMap[$aSize].'.dat';
-		$fp = fopen($file,'rb');
-		$rawdata = fread($fp,filesize($file));
-		$this->iFlagData = unserialize($rawdata);
-	    break;
-	    default:
-		JpGraphError::RaiseL(5001,$aSize);
-//('Unknown flag size. ('.$aSize.')');
-	}
-	$this->iFlagCount = count($this->iCountryNameMap);
+        switch($aSize) {
+            case FLAGSIZE1 :
+            case FLAGSIZE2 :
+            case FLAGSIZE3 :
+            case FLAGSIZE4 :
+                $file = dirname(__FILE__).'/'.$this->iFlagSetMap[$aSize].'.dat';
+                $fp = fopen($file,'rb');
+                $rawdata = fread($fp,filesize($file));
+                $this->iFlagData = unserialize($rawdata);
+                break;
+            default:
+                JpGraphError::RaiseL(5001,$aSize);
+                //('Unknown flag size. ('.$aSize.')');
+        }
+        $this->iFlagCount = count($this->iCountryNameMap);
     }
 
     function GetNum() {
-	return $this->iFlagCount;
+        return $this->iFlagCount;
     }
 
     function GetImgByName($aName,&$outFullName) {
-	$idx = $this->GetIdxByName($aName,$outFullName);
-	return $this->GetImgByIdx($idx);
+        $idx = $this->GetIdxByName($aName,$outFullName);
+        return $this->GetImgByIdx($idx);
     }
 
     function GetImgByIdx($aIdx) {
-	if( array_key_exists($aIdx,$this->iFlagData) ) {
-	    $d = $this->iFlagData[$aIdx][1];   
-	    return Image::CreateFromString($d);   
-	}
-	else {
-	    JpGraphError::RaiseL(5002,$aIdx);
-//("Flag index \" $aIdx\" does not exist.");
-	}
+        if( array_key_exists($aIdx,$this->iFlagData) ) {
+            $d = $this->iFlagData[$aIdx][1];
+            return Image::CreateFromString($d);
+        }
+        else {
+            JpGraphError::RaiseL(5002,$aIdx);
+            //("Flag index \"ï¿½$aIdx\" does not exist.");
+        }
     }
 
     function GetIdxByOrdinal($aOrd,&$outFullName) {
-	$aOrd--;
-	$n = count($this->iOrdIdx);
-	if( $n == 0 ) {
-	    reset($this->iCountryNameMap);
-	    $this->iOrdIdx=array();
-	    $i=0;
-	    while( list($key,$val) = each($this->iCountryNameMap) ) {
-		$this->iOrdIdx[$i++] = array($val,$key);
-	    }
-	    $tmp=$this->iOrdIdx[$aOrd];
-	    $outFullName = $tmp[1];
-	    return $tmp[0];
-	    
-	}
-	elseif( $aOrd >= 0 && $aOrd < $n ) {
-	    $tmp=$this->iOrdIdx[$aOrd];
-	    $outFullName = $tmp[1];
-	    return $tmp[0];
-	}
-	else {
-	    JpGraphError::RaiseL(5003,$aOrd);
-//('Invalid ordinal number specified for flag index.');
-	}
+        $aOrd--;
+        $n = count($this->iOrdIdx);
+        if( $n == 0 ) {
+            reset($this->iCountryNameMap);
+            $this->iOrdIdx=array();
+            $i=0;
+            while( list($key,$val) = each($this->iCountryNameMap) ) {
+                $this->iOrdIdx[$i++] = array($val,$key);
+            }
+            $tmp=$this->iOrdIdx[$aOrd];
+            $outFullName = $tmp[1];
+            return $tmp[0];
+             
+        }
+        elseif( $aOrd >= 0 && $aOrd < $n ) {
+            $tmp=$this->iOrdIdx[$aOrd];
+            $outFullName = $tmp[1];
+            return $tmp[0];
+        }
+        else {
+            JpGraphError::RaiseL(5003,$aOrd);
+            //('Invalid ordinal number specified for flag index.');
+        }
     }
 
     function GetIdxByName($aName,&$outFullName) {
 
-	if( is_integer($aName) ) {
-	    $idx = $this->GetIdxByOrdinal($aName,$outFullName);
-	    return $idx;
-	}
+        if( is_integer($aName) ) {
+            $idx = $this->GetIdxByOrdinal($aName,$outFullName);
+            return $idx;
+        }
 
-	$found=false;
-	$aName = strtolower($aName);
-	$nlen = strlen($aName);
-	reset($this->iCountryNameMap);
-	// Start by trying to match exact index name
-	while( list($key,$val) = each($this->iCountryNameMap) ) {
-	    if( $nlen == strlen($val) && $val == $aName )  {
-		$found=true;
-		break;
-	    }
-	}
-	if( !$found ) {
-	    reset($this->iCountryNameMap);
-	    // If the exact index doesn't work try a (partial) full name
-	    while( list($key,$val) = each($this->iCountryNameMap) ) {
-		if( strpos(strtolower($key), $aName) !== false ) {
-		    $found=true;
-		    break;
-		}
-	    }
-	}
-	if( $found ) {
-	    $outFullName = $key;
-	    return $val;   
-	}
-	else { 
-	    JpGraphError::RaiseL(5004,$aName);
-//("The (partial) country name \"$aName\" does not have a cooresponding flag image. The flag may still exist but under another name, e.g. insted of \"usa\" try \"united states\".");
-	}
+        $found=false;
+        $aName = strtolower($aName);
+        $nlen = strlen($aName);
+        reset($this->iCountryNameMap);
+        // Start by trying to match exact index name
+        while( list($key,$val) = each($this->iCountryNameMap) ) {
+            if( $nlen == strlen($val) && $val == $aName )  {
+                $found=true;
+                break;
+            }
+        }
+        if( !$found ) {
+            reset($this->iCountryNameMap);
+            // If the exact index doesn't work try a (partial) full name
+            while( list($key,$val) = each($this->iCountryNameMap) ) {
+                if( strpos(strtolower($key), $aName) !== false ) {
+                    $found=true;
+                    break;
+                }
+            }
+        }
+        if( $found ) {
+            $outFullName = $key;
+            return $val;
+        }
+        else {
+            JpGraphError::RaiseL(5004,$aName);
+            //("The (partial) country name \"$aName\" does not have a cooresponding flag image. The flag may still exist but under another name, e.g. insted of \"usa\" try \"united states\".");
+        }
     }
 }
 

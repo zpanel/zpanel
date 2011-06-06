@@ -1,11 +1,11 @@
 <?php
 /*=======================================================================
-// File: 	EN.INC.PHP
+// File:     EN.INC.PHP
 // Description: English language file for error messages
-// Created: 	2006-01-25
-// Ver:		$Id: en.inc.php 1017 2008-07-08 06:09:28Z ljp $
+// Created:     2006-01-25
+// Ver:        $Id: en.inc.php 1886 2009-10-01 23:30:16Z ljp $
 //
-// Copyright (c) Aditus Consulting. All rights reserved.
+// Copyright (c) Asial Corporation. All rights reserved.
 //========================================================================
 */
 
@@ -15,7 +15,7 @@ $_jpg_messages = array(
 /*
 ** Headers already sent error. This is formatted as HTML different since this will be sent back directly as text
 */
-10  => array('<table border="1"><tr><td style="color:darkred; font-size:1.2em;"><b>JpGraph Error:</b> 
+10  => array('<table border="1"><tr><td style="color:darkred; font-size:1.2em;"><b>JpGraph Error:</b>
 HTTP headers have already been sent.<br>Caused by output from file <b>%s</b> at line <b>%d</b>.</td></tr><tr><td><b>Explanation:</b><br>HTTP headers have already been sent back to the browser indicating the data as text before the library got a chance to send it\'s image HTTP header to this browser. This makes it impossible for the library to send back image data to the browser (since that would be interpretated as text by the browser and show up as junk text).<p>Most likely you have some text in your script before the call to <i>Graph::Stroke()</i>. If this texts gets sent back to the browser the browser will assume that all data is plain text. Look for any text, even spaces and newlines, that might have been sent back to the browser. <p>For example it is a common mistake to leave a blank line before the opening "<b>&lt;?php</b>".</td></tr></table>',2),
 
 /*
@@ -75,8 +75,8 @@ HTTP headers have already been sent.<br>Caused by output from file <b>%s</b> at 
 
 6001 => array('Internal error. Height for ActivityTitles is < 0',0),
 6002 => array('You can\'t specify negative sizes for Gantt graph dimensions. Use 0 to indicate that you want the library to automatically determine a dimension.',0),
-6003 => array('Invalid format for Constrain parameter at index=%d in CreateSimple(). Parameter must start with index 0 and contain arrays of (Row,Constrain-To,Constrain-Type)',1), 
-6004 => array('Invalid format for Progress parameter at index=%d in CreateSimple(). Parameter must start with index 0 and contain arrays of (Row,Progress)',1), 
+6003 => array('Invalid format for Constrain parameter at index=%d in CreateSimple(). Parameter must start with index 0 and contain arrays of (Row,Constrain-To,Constrain-Type)',1),
+6004 => array('Invalid format for Progress parameter at index=%d in CreateSimple(). Parameter must start with index 0 and contain arrays of (Row,Progress)',1),
 6005 => array('SetScale() is not meaningful with Gantt charts.',0),
 6006 => array('Cannot autoscale Gantt chart. No dated activities exist. [GetBarMinMax() start >= n]',0),
 6007 => array('Sanity check for automatic Gantt chart size failed. Either the width (=%d) or height (=%d) is larger than MAX_GANTTIMG_SIZE. This could potentially be caused by a wrong date in one of the activities.',2),
@@ -102,6 +102,7 @@ HTTP headers have already been sent.<br>Caused by output from file <b>%s</b> at 
 6030 => array('Unknown arrow direction for link.',0),
 6031 => array('Unknown arrow type for link.',0),
 6032 => array('Internal error: Unknown path type (=%d) specified for link.',1),
+6033 => array('Array of fonts must contain arrays with 3 elements, i.e. (Family, Style, Size)',0),
 
 /*
 **  jpgraph_gradient
@@ -186,6 +187,7 @@ HTTP headers have already been sent.<br>Caused by output from file <b>%s</b> at 
 15009 => array('Illegal pie plot. Sum of all data is zero for Pie Plot',0),
 15010 => array('Sum of all data is 0 for Pie.',0),
 15011 => array('In order to use image transformation you must include the file jpgraph_imgtrans.php in your script.',0),
+15012 => array('PiePlot::SetTheme() is no longer supported. Use PieGraph::SetTheme()',0),
 
 /*
 **  jpgraph_plotband
@@ -256,6 +258,7 @@ HTTP headers have already been sent.<br>Caused by output from file <b>%s</b> at 
 24001 => array('FuncGenerator : No function specified. ',0),
 24002 => array('FuncGenerator : Syntax error in function specification ',0),
 24003 => array('DateScaleUtils: Unknown tick type specified in call to GetTicks()',0),
+24004 => array('ReadCSV2: Column count mismatch in %s line %d',2),
 /*
 **  jpgraph
 */
@@ -271,11 +274,11 @@ HTTP headers have already been sent.<br>Caused by output from file <b>%s</b> at 
 25009 => array('You must specify what scale to use with a call to Graph::SetScale()',0),
 
 25010 => array('Graph::Add() You tried to add a null plot to the graph.',0),
-25011 => array('Graph::AddY2() You tried to add a null plot to the graph.',0), 
-25012 => array('Graph::AddYN() You tried to add a null plot to the graph.',0), 
+25011 => array('Graph::AddY2() You tried to add a null plot to the graph.',0),
+25012 => array('Graph::AddYN() You tried to add a null plot to the graph.',0),
 25013 => array('You can only add standard plots to multiple Y-axis',0),
-25014 => array('Graph::AddText() You tried to add a null text to the graph.',0), 
-25015 => array('Graph::AddLine() You tried to add a null line to the graph.',0), 
+25014 => array('Graph::AddText() You tried to add a null text to the graph.',0),
+25015 => array('Graph::AddLine() You tried to add a null line to the graph.',0),
 25016 => array('Graph::AddBand() You tried to add a null band to the graph.',0),
 25017 => array('You are using GD 2.x and are trying to use a background images on a non truecolor image. To use background images with GD 2.x it is necessary to enable truecolor by setting the USE_TRUECOLOR constant to TRUE. Due to a bug in GD 2.0.1 using any truetype fonts with truecolor images will result in very poor quality fonts.',0),
 25018 => array('Incorrect file name for Graph::SetBackgroundImage() : "%s" Must have a valid image extension (jpg,gif,png) when using auto detection of image type',1),
@@ -301,7 +304,7 @@ HTTP headers have already been sent.<br>Caused by output from file <b>%s</b> at 
 25036 => array('Unknown AxisStyle() : %s',1),
 25037 => array('The image format of your background image (%s) is not supported in your system configuration. ',1),
 25038 => array('Background image seems to be of different type (has different file extension) than specified imagetype. Specified: %s File: %s',2),
-25039 => array('Can\'t read background image: "%s"',1), 
+25039 => array('Can\'t read background image: "%s"',1),
 
 25040 => array('It is not possible to specify both a background image and a background country flag.',0),
 25041 => array('In order to use Country flags as backgrounds you must include the "jpgraph_flags.php" file.',0),
@@ -321,7 +324,7 @@ HTTP headers have already been sent.<br>Caused by output from file <b>%s</b> at 
 25054 => array('Internal error: Unknown grid axis %s',1),
 25055 => array('Axis::SetTickDirection() is deprecated. Use Axis::SetTickSide() instead',0),
 25056 => array('SetTickLabelMargin() is deprecated. Use Axis::SetLabelMargin() instead.',0),
-25057 => array('SetTextTicks() is deprecated. Use SetTextTickInterval() instead.',0), 
+25057 => array('SetTextTicks() is deprecated. Use SetTextTickInterval() instead.',0),
 25058 => array('Text label interval must be specified >= 1.',0),
 25059 => array('SetLabelPos() is deprecated. Use Axis::SetLabelSide() instead.',0),
 
@@ -365,7 +368,7 @@ HTTP headers have already been sent.<br>Caused by output from file <b>%s</b> at 
 25096 => array('Can\'t allocate any more colors in palette image. Image has already allocated maximum of %d colors and the palette  is now full. Change to a truecolor image instead',0),
 25097 => array('Color specified as empty string in PushColor().',0),
 25098 => array('Negative Color stack index. Unmatched call to PopColor()',0),
-25099 => array('Parameters for brightness and Contrast out of range [-1,1]',0), 
+25099 => array('Parameters for brightness and Contrast out of range [-1,1]',0),
 
 25100 => array('Problem with color palette and your GD setup. Please disable anti-aliasing or use GD2 with true-color. If you have GD2 library installed please make sure that you have set the USE_GD2 constant to true and truecolor is enabled.',0),
 25101 => array('Illegal numeric argument to SetLineStyle(): (%d)',1),
@@ -384,7 +387,7 @@ HTTP headers have already been sent.<br>Caused by output from file <b>%s</b> at 
 25113 => array('Can\'t delete cached image "%s". Permission problem?',1),
 25114 => array('PHP has not enough permissions to write to the cache file "%s". Please make sure that the user running PHP has write permission for this file if you wan to use the cache system with JpGraph.',1),
 25115 => array('Can\'t set permission for cached image "%s". Permission problem?',1),
-25116 => array('Cant open file from cache "%s"',1), 
+25116 => array('Cant open file from cache "%s"',1),
 25117 => array('Can\'t open cached image "%s" for reading.',1),
 25118 => array('Can\'t create directory "%s". Make sure PHP has write permission to this directory.',1),
 25119 => array('Can\'t set permissions for "%s". Permission problems?',1),
@@ -399,7 +402,17 @@ HTTP headers have already been sent.<br>Caused by output from file <b>%s</b> at 
 25127 => array('The library has been configured for automatic encoding conversion of Japanese fonts. This requires that PHP has the mb_convert_encoding() function. Your PHP installation lacks this function (PHP needs the "--enable-mbstring" when compiled).',0),
 25128 => array('The function imageantialias() is not available in your PHP installation. Use the GD version that comes with PHP and not the standalone version.',0),
 25129 => array('Anti-alias can not be used with dashed lines. Please disable anti-alias or use solid lines.',0),
+25130 => array('Too small plot area. (%d x %d). With the given image size and margins there is to little space left for the plot. Increase the plot size or reduce the margins.',2),
 
+25131 => array('StrokeBoxedText2() only supports TTF fonts and not built-in bitmap fonts.',0),
+25132 => array('Undefined property %s.',1),
+25133 => array('Use Graph::SetTheme() after Graph::SetScale().',0),
+
+/*
+**  jpgraph_led
+*/
+
+25500 => array('Multibyte strings must be enabled in the PHP installation in order to run the LED module so that the function mb_strlen() is available. See PHP documentation for more information.',0),
 
 /*
 **---------------------------------------------------------------------------------------------
@@ -408,7 +421,7 @@ HTTP headers have already been sent.<br>Caused by output from file <b>%s</b> at 
 */
 
 /*
-**  jpgraph_table 
+**  jpgraph_table
 */
 
 27001 => array('GTextTable: Invalid argument to Set(). Array argument must be 2 dimensional',0),
@@ -477,7 +490,7 @@ HTTP headers have already been sent.<br>Caused by output from file <b>%s</b> at 
 /*
 ** PDF417
 */
-
+26000 => array('PDF417: The PDF417 module requires that the PHP installation must support the function bcmod(). This is normally enabled at compile time. See documentation for more information.',0),
 26001 => array('PDF417: Number of Columns must be >= 1 and <= 30',0),
 26002 => array('PDF417: Error level must be between 0 and 8',0),
 26003 => array('PDF417: Invalid format for input data to encode with PDF417',0),
@@ -495,6 +508,37 @@ HTTP headers have already been sent.<br>Caused by output from file <b>%s</b> at 
 26015 => array('PDF417: Internal error. State transition table entry 0 is NULL. Entry 1 = (%s)',1),
 26016 => array('PDF417: Internal error: Unrecognized state transition mode in decode.',0),
 
+/*
+** jpgraph_contour
+*/
+
+28001 => array('Third argument to Contour must be an array of colors.',0),
+28002 => array('Number of colors must equal the number of isobar lines specified',0),
+28003 => array('ContourPlot Internal Error: isobarHCrossing: Coloumn index too large (%d)',1),
+28004 => array('ContourPlot Internal Error: isobarHCrossing: Row index too large (%d)',1),
+28005 => array('ContourPlot Internal Error: isobarVCrossing: Row index too large (%d)',1),
+28006 => array('ContourPlot Internal Error: isobarVCrossing: Col index too large (%d)',1),
+28007 => array('ContourPlot interpolation factor is too large (>5)',0),
+
+/*
+ * jpgraph_matrix and colormap
+*/
+29201 => array('Min range value must be less or equal to max range value for colormaps',0),
+29202 => array('The distance between min and max value is too small for numerical precision',0),
+29203 => array('Number of color quantification level must be at least %d',1),
+29204 => array('Number of colors (%d) is invalid for this colormap. It must be a number that can be written as: %d + k*%d',3),
+29205 => array('Colormap specification out of range. Must be an integer in range [0,%d]',1),
+29206 => array('Invalid object added to MatrixGraph',0),
+29207 => array('Empty input data specified for MatrixPlot',0),
+29208 => array('Unknown side specifiction for matrix labels "%s"',1),
+29209 => array('CSIM Target matrix must be the same size as the data matrix (csim=%d x %d, data=%d x %d)',4),
+29210 => array('CSIM Target for matrix labels does not match the number of labels (csim=%d, labels=%d)',2),
+
+
+/*
+* jpgraph_theme
+*/
+30001 => array("Theme::%s() is not defined. \nPlease make %s(\$graph) function in your theme classs.",2),
 
 );
 
