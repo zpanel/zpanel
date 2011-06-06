@@ -1,6 +1,5 @@
 #!/usr/bin/php
 <?php
-
 /**
  *
  * ZPanel - A Cross-Platform Open-Source Web Hosting Control panel.
@@ -54,13 +53,11 @@ function IsWindows() {
  */
 if (IsWindows() == true) {
     $zpanel_db_conf = "C:/ZPanel/panel/conf/zcnf.php";
-    $zpanel_db_conf = "C:/zpanel/conf/zcnf.php";
-    $zpanel_updates = "C:/zpanel/lib/updates";
-    echo "This OS has been detected as: Windows\n";
+    $zpanel_db_conf = "C:/wamp/www/zpanel/conf/zcnf.php";
+    $zpanel_updates = "C:/wamp/www/zpanel/lib/updates";
 } else {
     $zpanel_db_conf = "/etc/zpanel/conf/zcnf.php";
     $zpanel_updates = "/etc/zpanel/lib/updates";
-    echo "This OS has been detected as: Linux\n";
 }
 
 /**
@@ -135,35 +132,47 @@ function TriggerLog($a=0, $b="No details.") {
     return;
 }
 
-function DoUpgrade($directory_sql, $currentversion, $do=0) {
+function DoUpgrade($directory_sql, $currentversion) {
     # DESCRIPTION: Upgrades the ZPanel database recursively throught all the pervious upgrade scripts.
     # FUNCTION RELEASE: 6.1.0
     # FUNCTION AUTHOR: Bobby Allen (ballen@zpanel.co.uk)
     global $zpanel_db_conf;
     include $zpanel_db_conf;
-    mysql_select_db($z_db_name);
-    if ($handle = opendir($directory_sql)) {
+    mysql_select_db($z_db_name, $zdb);
+    $handle = opendir($directory_sql);
+    $no_errors = 0;
+    $no_updates = 0;
+    if ($handle) {
         while (false !== ($file = readdir($handle))) {
-            if ($file != "." AND $file != "..") {
+            if ($file != "." && $file != "..") {
                 $files[] = str_replace(".sql", "", $file);
                 # Check if the SQL file version is greater than the current ZPanel verison..
-                if ($do == true) {
-                    if ($file > str_replace(".", "", $currentversion)) {
-                        echo "=> Excetuting SQL upgrade script in: " . $directory_sql . "/" . $file . "\n";
-                        /**
-                         * @todo Just need to add MySQL execution for the SQL upgrade file here (with error log catching)!
-                         */
+                if (str_replace(".sql", "", $file) > str_replace(".", "", $currentversion)) {
+                    echo "=> Excetuting SQL upgrade script in: " . $directory_sql . "/" . $file . "\n";
+                    $sqlFileToExecute = $directory_sql . "/" . $file;
+                    $fhandle = fopen($sqlFileToExecute, "r+");
+                    $sqlFile = fread($fhandle, filesize($sqlFileToExecute));
+                    $sqlArray = explode(';', $sqlFile);
+                    foreach ($sqlArray as $stmt) {
+                        if (strlen($stmt) > 3) {
+                            $result = @mysql_query($stmt);
+                            if (!$result) {
+                                $sqlErrorCode = mysql_errno();
+                                $sqlErrorText = mysql_error();
+                                $sqlStmt = $stmt;
+                                $no_errors = $no_errors++;
+                                TriggerLog(1, addslashes("Update script (" . $sqlFileToExecute . ") error - MySQL Error: " . $sqlErrorCode . " - " . $sqlErrorText . " [Query was: " . $sqlStmt . "]"));
+                            }
+                        }
                     }
-                    $retval = "";
-                } else {
-                    $retval = $file;
+                    $no_updates = $no_updates+1;
                 }
             }
         }
         closedir($handle);
     }
     asort($files);
-    return $retval;
+    return array($no_updates,$no_errors);
 }
 
 /**
@@ -176,14 +185,15 @@ IsCLI();
  * this is designed so that on our windows update installer it can execute this without requesting permission from
  * the user. - Linux administrators may wish to run their upgrades manually etc :)
  */
+echo "ZPanel Upgrade Tool\n";
+echo "===================\n";
+
 if ($argv[1] <> "--force") {
-    echo "\nThis server is currently running: ZPanel " . GetSystemOption('zpanel_version') . "\n";
-    echo "We have identified that you can upgrade to version: " . str_replace(".sql", "", DoUpgrade($zpanel_updates, GetSystemOption('zpanel_version'),0)) . "\n\n";
-    echo "";
-    echo "If you want to upgrade type 'upgrade' and press ENTER to contine...";
+    echo "This server is currently running ZPanel version: " . GetSystemOption('zpanel_version') . "\n";
+    echo "If you want to upgrade type 'upgrade' and press ENTER to contine..\n";
     $strConfirm = fread(STDIN, 10);
     if (trim(strtolower($strConfirm)) != 'upgrade') {
-        echo "Update cancelled!\n";
+        echo "\nUpdate cancelled!\n";
         exit;
     }
     echo "\n";
@@ -191,8 +201,11 @@ if ($argv[1] <> "--force") {
 /**
  * Lets perform the upgrade...
  */
-echo "The upgrade process will now begin...\n\n";
-DoUpgrade($zpanel_updates, GetSystemOption('zpanel_version'),1);
-echo "\n\nUpgrade complete!\nYou are now running ZPanel version: " . GetSystemOption('zpanel_version') . "";
+echo "\nThe upgrade process will now begin (if upgrades are avaliable)...\n\n";
+$results = DoUpgrade($zpanel_updates, GetSystemOption('zpanel_version'));
+if ($results[1] > 0) {
+    echo "There was " . $results[1] . " errors during upgrade, please check the Zpanel logs table for details.";
+}
+echo $results[0] . " update scripts have been run, you are now running version: " . GetSystemOption('zpanel_version') . "";
 exit;
 ?>
