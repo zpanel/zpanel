@@ -120,6 +120,8 @@ echo "\$zdb = @mysql_pconnect(\$z_db_host, \$z_db_user, \$z_db_pass) or trigger_
 echo "?>" >> /etc/zpanel/conf/zcnf.php
 echo "  ^ Done"
 
+# Set phpmyadmin freindly permissions on the config.inc.php (so phpMyAdmin doesn't complain)
+chmod 644 /etc/zpanel/apps/phpmyadmin/config.inc.php
 
 echo ""
 echo "ZPanel has now been installed!"
