@@ -89,6 +89,10 @@ make install
 touch /etc/php.d/suhosin.ini
 chmod 755 /etc/php.d/suhosin.ini
 echo "extension=suhosin.so" > /etc/php.d/suhosin.ini
+echo "[Suhosin]" >> /etc/php.d/suhosin.ini
+echo "suhosin.session.encrypt = Off" >> /etc/php.d/suhosin.ini
+echo "suhosin.cookie.encrypt = Off" >> /etc/php.d/suhosin.ini
+echo "suhosin.memory.limit = 512M" >> /etc/php.d/suhosin.ini
 cd ..
 rm -fr suhosin-0.9.29*
 cd ~
