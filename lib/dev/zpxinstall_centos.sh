@@ -551,6 +551,26 @@ echo "table = domain" >> ${mysql_virtual_transport}
 echo "select_field = transport" >> ${mysql_virtual_transport}
 echo "where_field = domain" >> ${mysql_virtual_transport}
 
+# Roundcube Webmail Config
+echo "<?php" > /etc/zpanel/apps/webmail/config/db.inc.php
+echo "\$rcmail_config = array();" >> /etc/zpanel/apps/webmail/config/db.inc.php
+echo "\$rcmail_config['db_dsnw'] = 'mysql://root:${password}@localhost/zpanel_roundcube';" >> /etc/zpanel/apps/webmail/config/db.inc.php
+echo "\$rcmail_config['db_dsnr'] = '';" >> /etc/zpanel/apps/webmail/config/db.inc.php
+echo "\$rcmail_config['db_max_length'] = 512000;" >> /etc/zpanel/apps/webmail/config/db.inc.php
+echo "\$rcmail_config['db_persistent'] = FALSE;" >> /etc/zpanel/apps/webmail/config/db.inc.php
+echo "\$rcmail_config['db_table_users'] = 'users';" >> /etc/zpanel/apps/webmail/config/db.inc.php
+echo "\$rcmail_config['db_table_identities'] = 'identities';" >> /etc/zpanel/apps/webmail/config/db.inc.php
+echo "\$rcmail_config['db_table_contacts'] = 'contacts';" >> /etc/zpanel/apps/webmail/config/db.inc.php
+echo "\$rcmail_config['db_table_session'] = 'session';" >> /etc/zpanel/apps/webmail/config/db.inc.php
+echo "\$rcmail_config['db_table_cache'] = 'cache';" >> /etc/zpanel/apps/webmail/config/db.inc.php
+echo "\$rcmail_config['db_table_messages'] = 'messages';" >> /etc/zpanel/apps/webmail/config/db.inc.php
+echo "\$rcmail_config['db_sequence_users'] = 'user_ids';" >> /etc/zpanel/apps/webmail/config/db.inc.php
+echo "\$rcmail_config['db_sequence_identities'] = 'identity_ids';" >> /etc/zpanel/apps/webmail/config/db.inc.php
+echo "\$rcmail_config['db_sequence_contacts'] = 'contact_ids';" >> /etc/zpanel/apps/webmail/config/db.inc.php
+echo "\$rcmail_config['db_sequence_cache'] = 'cache_ids';" >> /etc/zpanel/apps/webmail/config/db.inc.php
+echo "\$rcmail_config['db_sequence_messages'] = 'message_ids';" >> /etc/zpanel/apps/webmail/config/db.inc.php
+echo "?>" >> /etc/zpanel/apps/webmail/config/db.inc.php
+
 service postfix start
 service dovecot start
 
