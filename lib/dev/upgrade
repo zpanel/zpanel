@@ -53,8 +53,7 @@ function IsWindows() {
  */
 if (IsWindows() == true) {
     $zpanel_db_conf = "C:/ZPanel/panel/conf/zcnf.php";
-    $zpanel_db_conf = "C:/wamp/www/zpanel/conf/zcnf.php";
-    $zpanel_updates = "C:/wamp/www/zpanel/lib/updates";
+    $zpanel_updates = "C:/ZPanel/panel/lib/updates";
 } else {
     $zpanel_db_conf = "/etc/zpanel/conf/zcnf.php";
     $zpanel_updates = "/etc/zpanel/lib/updates";
@@ -144,18 +143,27 @@ function DoUpgrade($directory_sql, $currentversion) {
     $no_updates = 0;
     if ($handle) {
         while (false !== ($file = readdir($handle))) {
-            if ($file != "." && $file != "..") {
-                $files[] = str_replace(".sql", "", $file);
-                # Check if the SQL file version is greater than the current ZPanel verison..
-                if (str_replace(".sql", "", $file) > str_replace(".", "", $currentversion)) {
-                    echo "=> Excetuting SQL upgrade script in: " . $directory_sql . "/" . $file . "\n";
-                    $sqlFileToExecute = $directory_sql . "/" . $file;
+            if ($file != "." && $file != ".." && $file != ".svn") {
+                $files[] = str_replace(".sql", "",$file);
+            }
+        }
+        closedir($handle);
+    }
+	# Due to Linux we need to alphabetically order the array as unline Windows the file array uses modified timestamp rather than the filename.
+    asort($files);
+	
+	
+	# Now we have the array in alphabetical order, let execute the scripts...
+	foreach ($files as $updatescript) {
+		if (str_replace(".sql", "", $updatescript) > str_replace(".", "", $currentversion)) {
+                    echo "=> Excetuting SQL upgrade script in: " . $directory_sql . "/" . $updatescript . ".sql\n";
+                    $sqlFileToExecute = $directory_sql . "/" . $updatescript.".sql";
                     $fhandle = fopen($sqlFileToExecute, "r+");
                     $sqlFile = fread($fhandle, filesize($sqlFileToExecute));
                     $sqlArray = explode(';', $sqlFile);
                     foreach ($sqlArray as $stmt) {
                         if (strlen($stmt) > 3) {
-                            $result = @mysql_query($stmt);
+                            $result = @mysql_query($stmt, $zdb);
                             if (!$result) {
                                 $sqlErrorCode = mysql_errno();
                                 $sqlErrorText = mysql_error();
@@ -167,11 +175,7 @@ function DoUpgrade($directory_sql, $currentversion) {
                     }
                     $no_updates = $no_updates+1;
                 }
-            }
-        }
-        closedir($handle);
-    }
-    asort($files);
+	}
     return array($no_updates,$no_errors);
 }
 
