@@ -244,10 +244,10 @@ service httpd restart
 # BEGIN Configure Postfix Mail Server ##########################################################
 ################################################################################################
 # Create a vmail user to store email files
-sudo useradd -m -g vmail -u 5000 -d /var/zpanel/vmail -s /bin/bash vmail
-sudo groupadd -g 5000 vmail
 mkdir -p /var/zpanel/vmail
-chmod 770 /var/zpanel/vmail
+chmod 777 /var/zpanel/vmail
+sudo groupadd -g 5000 vmail
+sudo useradd -m -g vmail -u 5000 -d /var/zpanel/vmail -s /bin/bash vmail
 
 # Postfix Master.cf
 echo "# Dovecot LDA" >> ${postfix_master_config}
