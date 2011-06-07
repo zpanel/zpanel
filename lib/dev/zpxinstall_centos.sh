@@ -49,9 +49,6 @@ read continue
 # Install the required development enviroment packages...
 sudo yum update
 sudo yum install httpd php53 php53-devel php53-gd php53-mbstring php53-imap php53-mysql php53-xml php53-xmlrpc curl curl-devel perl-libwww-perl libxml2 libxml2-devel mysql-server subversion zip webalizer gcc gcc-c++ httpd-devel.i386 system-switch-mail
-# We need to get the version of PostFix that has MySQL enabled.
-yes | cp /etc/zpanel/lib/dev/pf_confs/CentOS-Base.repo /etc/yum.repos.d/
-sudo yum --enablerepo=centosplus install postfix dovecot
 #sudo chkconfig --levels 235 sendmail off; /etc/init.d/sendmail stop; yum -y remove sendmail
 sudo yum remove vsftpd
 
@@ -143,6 +140,10 @@ sudo chkconfig --levels 235 dovecot on
 service httpd start
 service mysqld start
 service proftpd start
+
+# We need to get the version of PostFix that has MySQL enabled.
+yes | cp /etc/zpanel/lib/dev/pf_confs/CentOS-Base.repo /etc/yum.repos.d/
+sudo yum --enablerepo=centosplus install postfix dovecot
 
 # Now we run the MySQL secure script (to enable the user to set a MySQL root password etc.)
 /usr/bin/mysql_secure_installation
