@@ -52,6 +52,11 @@ sudo yum install httpd php53 php53-devel php53-gd php53-mbstring php53-imap php5
 #sudo chkconfig --levels 235 sendmail off; /etc/init.d/sendmail stop; yum -y remove sendmail
 sudo yum remove vsftpd
 
+echo "#########################################################"
+echo "# Installing ProFTPd                                    #"
+echo "# --------------------------------------------          #"
+echo "########################################################"
+
 # We have to install ProFTPd Manually as CentOS does not have a package for it..
 cd /tmp/
 wget http://forums.zpanelcp.com/pkgs/source/proftpd-1.3.3e.tar.gz
@@ -69,6 +74,11 @@ mv proftpd_centos55.txt proftpd
 mv proftpd /etc/init.d/proftpd
 chmod 755 /etc/init.d/proftpd
 
+echo "#########################################################"
+echo "# Installing MOD_BW                                     #"
+echo "# --------------------------------------------          #"
+echo "########################################################"
+
 # We have to install Mod_BW Manually as CentOS does not have a package for it..
 cd /tmp/
 wget http://ivn.cl/files/source/mod_bw-0.92.tgz
@@ -76,6 +86,11 @@ tar -zxvf mod_bw-0.92.tgz
 apxs -i -a -c mod_bw.c
 rm -fr mod_bw*
 cd ~
+
+echo "#########################################################"
+echo "# Installing Suhosin                                    #"
+echo "# --------------------------------------------          #"
+echo "########################################################"
 
 # We have to install suhosin Manually as CentOS does not have a package for it...
 cd /tmp/
@@ -96,7 +111,6 @@ echo "suhosin.memory.limit = 512M" >> /etc/php.d/suhosin.ini
 cd ..
 rm -fr suhosin-0.9.29*
 cd ~
-
 
 # Add 'include' to the Apache configuration file..
 echo "# Include the ZPanel HTTPD managed configuration file." >> ${apache_config}
@@ -122,6 +136,11 @@ sudo mkdir /var/zpanel/logs/domains/
 sudo mkdir /var/zpanel/logs/domains/zadmin/
 sudo mkdir /var/zpanel/logs/proftpd/
 
+echo "#########################################################"
+echo "# Getting latest ZPanel SVN Revision                    #"
+echo "# --------------------------------------------          #"
+echo "########################################################"
+
 # Download the contents of the SVN repository..
 echo "You may now be asked to accept the SSL certificate for our SVN repository..."
 sudo svn co https://zpanelcp.svn.sourceforge.net/svnroot/zpanelcp/trunk /etc/zpanel/
@@ -134,6 +153,14 @@ sudo chmod -R g+s /var/zpanel
 sudo chmod -R 777 /etc/zpanel/
 sudo chmod -R 777 /var/zpanel/
 
+echo "#########################################################"
+echo "# Installing Postfix / Dovecot                          #"
+echo "# --------------------------------------------          #"
+echo "########################################################"
+
+# We need to get the version of PostFix that has MySQL enabled.
+yes | cp /etc/zpanel/lib/dev/pf_confs/CentOS-Base.repo /etc/yum.repos.d/
+sudo yum --enablerepo=centosplus install postfix dovecot
 
 # Add services to be started
 sudo chkconfig --levels 235 httpd on
@@ -145,19 +172,26 @@ service httpd start
 service mysqld start
 service proftpd start
 
-# We need to get the version of PostFix that has MySQL enabled.
-yes | cp /etc/zpanel/lib/dev/pf_confs/CentOS-Base.repo /etc/yum.repos.d/
-sudo yum --enablerepo=centosplus install postfix dovecot
+echo "#########################################################"
+echo "# Configure MySQL Root Password                         #"
+echo "# --------------------------------------------          #"
+echo "########################################################"
 
 # Now we run the MySQL secure script (to enable the user to set a MySQL root password etc.)
 /usr/bin/mysql_secure_installation
 
 # Add a cron task to run deamon every 30 mins...
-echo "0,30 * * * * php /etc/zpanel/daemon.php" >> /etc/crontab
+touch /etc/cron.d/zdaemon
+echo "0/30 * * * * root /usr/bin/php -q /etc/zpanel/daemon.php" >> /etc/cron.d/zdaemon
 # Set permissions so Apache can create cronjobs!
-sudo chmod 777 /etc/crontab
+sudo chmod 777 /etc/cron.d/zdaemon
 
 clear
+echo "#########################################################"
+echo "# Import ZPanel SQL Databases                           #"
+echo "# --------------------------------------------          #"
+echo "########################################################"
+echo ""
 echo "Will now attempt to create and insert the ZPanel core database into MySQL, please enter the MySQL root password when asked..."
 echo "Enter MySQL root password:"
 read password
@@ -206,8 +240,12 @@ chmod 644 /etc/zpanel/apps/phpmyadmin/config.inc.php
 
 # Setup the default virtual host for the control panel
 clear
+echo "#########################################################"
+echo "# Configure Control Panel VHost                         #"
+echo "# --------------------------------------------          #"
+echo "########################################################"
+echo ""
 echo "ENTER THE DOMAIN/SUBDOMAIN THAT WILL HOST ZPANEL EG. 'CONTROL.YOURDOMAIN.COM'"
-echo " "
 read domain
 echo "# ZPanel Apache Master VHOST file." > /etc/zpanel/conf/httpd-vhosts.conf
 echo "# Written by Bobby Allen, 15/05/2011" >> /etc/zpanel/conf/httpd-vhosts.conf
@@ -238,7 +276,6 @@ echo "	########################################################" >> /etc/zpanel/
 
 # Add ZPanel CP to hosts file
 echo "127.0.0.1			${domain}">> /etc/hosts
-service httpd restart
 
 ################################################################################################
 # BEGIN Configure Postfix Mail Server ##########################################################
@@ -248,6 +285,7 @@ mkdir -p /var/zpanel/vmail
 chmod 777 /var/zpanel/vmail
 sudo groupadd -g 5000 vmail
 sudo useradd -m -g vmail -u 5000 -d /var/zpanel/vmail -s /bin/bash vmail
+chown vmail.vmail /var/zpanel/vmail
 
 # Postfix Master.cf
 echo "# Dovecot LDA" >> ${postfix_master_config}
@@ -399,7 +437,7 @@ echo "#########################################################################"
 echo "# ZPANEL CONFIGURATION" >> ${postfix_main_config}
 echo "#########################################################################" >> ${postfix_main_config}
 echo "#transport_maps                = mysql:${mysql_virtual_transport}" >> ${postfix_main_config}
-echo "#relay_domains                 = mysql:/etc/postfix/mysql_relay_domains_maps.cf" >> ${postfix_main_config}
+echo "#relay_domains                 = mysql:${mysql_relay_domains_maps}" >> ${postfix_main_config}
 echo "virtual_alias_maps             = mysql:${mysql_virtual_alias_maps}" >> ${postfix_main_config}
 echo "virtual_mailbox_domains        = mysql:${mysql_virtual_domains_maps}" >> ${postfix_main_config}
 echo "virtual_mailbox_maps           = mysql:${mysql_virtual_mailbox_maps}" >> ${postfix_main_config}
@@ -577,12 +615,13 @@ echo "?>" >> /etc/zpanel/apps/webmail/config/db.inc.php
 
 service postfix start
 service dovecot start
+service httpd restart
 
 ################################################################################################
 # END Configure Postfix Mail Server ############################################################
 ################################################################################################
 
-echo "===================================================="
+echo "=========================================================="
 echo "ZPanel has now been installed!"
 echo " "
 echo "IMPORTANT: Ensure you make a note of these settings"
@@ -602,4 +641,4 @@ echo ""
 echo "REQUIRED: You must still add a crontab entry to enable"
 echo "          the Zpanel daemon to run hourly, the line to"
 echo "          add to the crontabe (crontab -e) is as follows:"
-echo "          0 * * * * php /etc/zpanel/daemon.php
+echo "          0 * * * * php /etc/zpanel/daemon.php"
