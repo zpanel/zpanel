@@ -160,11 +160,11 @@ if ($_POST['inAction'] == 'new') {
 
 if ($_POST['inAction'] == 'edit') {
 # If the user submitted an 'edit' request then we will simply update the accounts and personal tables in the database...
-	# Get the old package id to check if it has changed.
-	$sql = "SELECT * FROM z_accounts WHERE ac_id_pk=" . $_POST['inClientID'] . "";
-	$listoldpackage = DataExchange("r", $z_db_name, $sql);
-	$rowoldpackage = mysql_fetch_assoc($listoldpackage);
-	
+    # Get the old package id to check if it has changed.
+    $sql = "SELECT * FROM z_accounts WHERE ac_id_pk=" . $_POST['inClientID'] . "";
+    $listoldpackage = DataExchange("r", $z_db_name, $sql);
+    $rowoldpackage = mysql_fetch_assoc($listoldpackage);
+
     $sql = "UPDATE z_accounts SET ac_package_fk=" . Cleaner('i', $_POST['inPackage']) . " WHERE ac_id_pk=" . $_POST['inClientID'] . "";
     DataExchange("w", $z_db_name, $sql);
     $sql = "UPDATE z_personal SET ap_fullname_vc='" . Cleaner('i', $_POST['inFullName']) . "',
@@ -188,13 +188,13 @@ if ($_POST['inAction'] == 'edit') {
         zapi_mysqluser_setpass($resetforuser, Cleaner("i", $_POST['inNewPassword']), $zdb);
         TriggerLog($useraccount['ac_id_pk'], "Account password for (" . $resetforuser . ") has been reset by the account admin.");
     }
-		
-	# Log the package as modified so the daemon will make changes to vhosts if the client was moved to a different package.
-	if ($rowoldpackage['ac_package_fk'] != Cleaner('i', $_POST['inPackage'])){
-	$sql = "UPDATE z_quotas SET qt_modified_in = 1 WHERE qt_package_fk = ". Cleaner('i', $_POST['inPackage']) ."";
-	DataExchange("w",$z_db_name,$sql);
-	}
-		
+
+    # Log the package as modified so the daemon will make changes to vhosts if the client was moved to a different package.
+    if ($rowoldpackage['ac_package_fk'] != Cleaner('i', $_POST['inPackage'])) {
+        $sql = "UPDATE z_quotas SET qt_modified_in = 1 WHERE qt_package_fk = " . Cleaner('i', $_POST['inPackage']) . "";
+        DataExchange("w", $z_db_name, $sql);
+    }
+
     $returnurl = GetNormalModuleURL($returnurl) . "&r=ok";
     TriggerLog($useraccount['ac_id_pk'], $b = "User account ID: " . $_POST['inClientID'] . " was updated.");
     header("location: " . $returnurl . "");
@@ -332,26 +332,35 @@ if ($_POST['inAction'] == 'delete') {
                     zapi_vhost_remove(GetSystemOption('apache_vhost'), $rowvhosts['vh_name_vc']);
 
                     # Lets now go and try removing the domain from hMailServer (if configured in the ZPanel system settings:-
-                    $hmaildatabase = GetSystemOption('hmailserver_db');
-                    if (GetSystemOption('hmailserver_db') <> "") {
-                        # Lets delete all hMailServer accounts...
-                        $sql = "SELECT domainid FROM hm_domains WHERE domainname='" . $rowvhosts['vh_name_vc'] . "'";
-                        $hmdomainid = DataExchange("l", $hmaildatabase, $sql);
-                        $hmisdomain = DataExchange("t", $hmaildatabase, $sql);
-                        $domain_id = $hmdomainid['domainid'];
-                        # Lets delete the domain (if it exists in the hMailServer database....
-                        if ($hmisdomain > 0) {
-                            # Delete the domain now...
-                            $sql = "DELETE FROM hm_domains WHERE domainid=" . $domain_id . "";
-                            DataExchange("w", $hmaildatabase, $sql);
+                    if (ShowServerPlatform() == 'Windows') {
+                        $hmaildatabase = GetSystemOption('hmailserver_db');
+                        if (GetSystemOption('hmailserver_db') <> "") {
+                            # Lets delete all hMailServer accounts...
+                            $sql = "SELECT domainid FROM hm_domains WHERE domainname='" . $rowvhosts['vh_name_vc'] . "'";
+                            $hmdomainid = DataExchange("l", $hmaildatabase, $sql);
+                            $hmisdomain = DataExchange("t", $hmaildatabase, $sql);
+                            $domain_id = $hmdomainid['domainid'];
+                            # Lets delete the domain (if it exists in the hMailServer database....
+                            if ($hmisdomain > 0) {
+                                # Delete the domain now...
+                                $sql = "DELETE FROM hm_domains WHERE domainid=" . $domain_id . "";
+                                DataExchange("w", $hmaildatabase, $sql);
 
-                            # Delete the domain folder from the hMailServer program directory...
-                            # Check both locations...
-                            zapi_filesystem_remove("C:/Zpanel/bin/hmailserver/Data/" . $rowvhosts['vh_name_vc'] . "/");
-                            zapi_filesystem_remove("C:/Program Files/hMailServer/Data/" . $rowvhosts['vh_name_vc'] . "/");
+
+
+                                # Delete the domain folder from the hMailServer program directory...
+                                # Check both locations...
+                                zapi_filesystem_remove("C:/Zpanel/bin/hmailserver/Data/" . $rowvhosts['vh_name_vc'] . "/");
+                                zapi_filesystem_remove("C:/Program Files/hMailServer/Data/" . $rowvhosts['vh_name_vc'] . "/");
+                            }
                         }
+                        $total_deleted = ($total_deleted + 1);
+                    } else {
+                        # Now we delete the domain from the Postfix database.
+                        $postfixdatabase = GetSystemOption('hmailserver_db');
+                        $sql = "DELETE FROM domains WHERE domain = '" . $rowvhosts['vh_name_vc'] . "'";
+                        DataExchange("w", $postfixdatabase, $sql);
                     }
-                    $total_deleted = ($total_deleted + 1);
                 } while ($rowvhosts = mysql_fetch_assoc($listvhosts));
             }
             $sql = "UPDATE z_vhosts SET vh_deleted_ts=" . time() . " WHERE vh_acc_fk=" . $rowclients['ac_id_pk'] . " AND vh_deleted_ts IS NULL";

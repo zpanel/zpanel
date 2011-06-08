@@ -43,8 +43,8 @@ $totalactivedomains = DataExchange("t", $z_db_name, $sql);
 $SharedDomains = array();
 $a = GetSystemOption('shared_domains');
 $a = explode(';', $a);
-foreach ($a as $b){
-$SharedDomains[] = $b;
+foreach ($a as $b) {
+    $SharedDomains[] = $b;
 }
 
 
@@ -77,31 +77,31 @@ if ($_POST['inAction'] == 'NewDomain') {
         header("location: " . GetNormalModuleURL($returnurl) . "&r=alreadyexists");
         exit;
     }
-	# Check to make sure user not adding a subdomain and blocks stealing of subdomains....
-	if(substr_count($domain,".") > 1){
-		$part = explode('.', $domain);
-    	foreach($part as $check){
-			if (!in_array($check, $SharedDomains)){
-				if (strlen($check) > 3){
-				$sql = "SELECT * FROM z_vhosts WHERE vh_name_vc LIKE '%" .$check. "%' AND vh_type_in !='2' AND vh_deleted_ts IS NULL";
-				$checkdomains = DataExchange("r",$z_db_name,$sql);
-					while($rowcheckdomains = mysql_fetch_assoc($checkdomains)){
-						$subpart = explode('.', $rowcheckdomains['vh_name_vc']);
-						foreach($subpart as $subcheck){
-							if (strlen($subcheck) > 3){
-								if ($subcheck == $check){
-									if(substr($domain, -7) == substr($rowcheckdomains['vh_name_vc'], -7)){
-									header("location: " .GetNormalModuleURL($returnurl). "&r=nosub");
-									exit;
-									}
-								}
-							}
-						}
-					}
-				}
-    		}	
-		}
-	} 
+    # Check to make sure user not adding a subdomain and blocks stealing of subdomains....
+    if (substr_count($domain, ".") > 1) {
+        $part = explode('.', $domain);
+        foreach ($part as $check) {
+            if (!in_array($check, $SharedDomains)) {
+                if (strlen($check) > 3) {
+                    $sql = "SELECT * FROM z_vhosts WHERE vh_name_vc LIKE '%" . $check . "%' AND vh_type_in !='2' AND vh_deleted_ts IS NULL";
+                    $checkdomains = DataExchange("r", $z_db_name, $sql);
+                    while ($rowcheckdomains = mysql_fetch_assoc($checkdomains)) {
+                        $subpart = explode('.', $rowcheckdomains['vh_name_vc']);
+                        foreach ($subpart as $subcheck) {
+                            if (strlen($subcheck) > 3) {
+                                if ($subcheck == $check) {
+                                    if (substr($domain, -7) == substr($rowcheckdomains['vh_name_vc'], -7)) {
+                                        header("location: " . GetNormalModuleURL($returnurl) . "&r=nosub");
+                                        exit;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
     # Check to see if its a new home directory or use a current one...
     if ($_POST['inAutoHome'] == 1) {
         $homedirectoy_to_use = "/" . str_replace(".", "_", Cleaner('i', $domain));
@@ -226,6 +226,11 @@ CustomLog \"" . GetSystemOption('logfile_dir') . $useraccount['ac_user_vc'] . "/
 									 '',
 									 '')";
         DataExchange("w", $hmaildatabase, $sql);
+    } else {
+        # Now we add the domain to the Postfix database.
+        $postfixdatabase = GetSystemOption('hmailserver_db');
+        $sql = "INSERT INTO domains(domain) VALUES ('" . $domain . "')";
+        DataExchange("w", $postfixdatabase, $sql);
     }
 
     # Just to fix an issue with selecting the database after selecting the hMailServer.
@@ -254,10 +259,10 @@ CustomLog \"" . GetSystemOption('logfile_dir') . $useraccount['ac_user_vc'] . "/
             @chmod(GetSystemOption('hosted_dir') . $useraccount['ac_user_vc'] . $homedirectoy_to_use . "/index.html", 0777);
         }
     }
-	
-	# Log the package as modified so the daemon will make changes to vhosts.
-	$sql = "UPDATE z_quotas SET qt_modified_in = 1 WHERE qt_id_pk = ". $quotainfo['qt_id_pk'] ."";
-	DataExchange("w",$z_db_name,$sql);
+
+    # Log the package as modified so the daemon will make changes to vhosts.
+    $sql = "UPDATE z_quotas SET qt_modified_in = 1 WHERE qt_id_pk = " . $quotainfo['qt_id_pk'] . "";
+    DataExchange("w", $z_db_name, $sql);
 
     # Now we add some infomation to the system log.
     TriggerLog($useraccount['ac_id_pk'], $b = "New domain (vhost) has been added by the user (" . Cleaner('i', $_POST['inDomain']) . ").");
@@ -355,7 +360,7 @@ ErrorDocument 510 /_errorpages/510.html";
             @chmod(GetSystemOption('hosted_dir') . $useraccount['ac_user_vc'] . $homedirectoy_to_use . "/_errorpages" . "/403.html", 0777);
             @chmod(GetSystemOption('hosted_dir') . $useraccount['ac_user_vc'] . $homedirectoy_to_use . "/_errorpages" . "/404.html", 0777);
             @chmod(GetSystemOption('hosted_dir') . $useraccount['ac_user_vc'] . $homedirectoy_to_use . "/_errorpages" . "/500.html", 0777);
-			@chmod(GetSystemOption('hosted_dir') . $useraccount['ac_user_vc'] . $homedirectoy_to_use . "/_errorpages" . "/510.html", 0777);
+            @chmod(GetSystemOption('hosted_dir') . $useraccount['ac_user_vc'] . $homedirectoy_to_use . "/_errorpages" . "/510.html", 0777);
         }
     }
 
@@ -399,9 +404,9 @@ CustomLog \"" . GetSystemOption('logfile_dir') . $useraccount['ac_user_vc'] . "/
         }
     }
 
-	# Log the package as modified so the daemon will make changes to vhosts.
-	$sql = "UPDATE z_quotas SET qt_modified_in = 1 WHERE qt_id_pk = ". $quotainfo['qt_id_pk'] ."";
-	DataExchange("w",$z_db_name,$sql);
+    # Log the package as modified so the daemon will make changes to vhosts.
+    $sql = "UPDATE z_quotas SET qt_modified_in = 1 WHERE qt_id_pk = " . $quotainfo['qt_id_pk'] . "";
+    DataExchange("w", $z_db_name, $sql);
 
     # Now we add some infomation to the system log.
     TriggerLog($useraccount['ac_id_pk'], $b = "New sub-domain (vhost) has been added by the user (" . Cleaner('i', $domain) . ").");
@@ -432,30 +437,30 @@ if ($_POST['inAction'] == 'NewParkedDomain') {
         exit;
     }
     # Check to make sure user not adding a subdomain and blocks stealing of subdomains....
-	if(substr_count($domain,".") > 1){
-		$part = explode('.', $domain);
-    	foreach($part as $check){
-			if (!in_array($check, $SharedDomains)){
-				if (strlen($check) > 3){
-				$sql = "SELECT * FROM z_vhosts WHERE vh_name_vc LIKE '%" .$check. "%' AND vh_type_in !='2' AND vh_deleted_ts IS NULL";
-				$checkdomains = DataExchange("r",$z_db_name,$sql);
-					while($rowcheckdomains = mysql_fetch_assoc($checkdomains)){
-						$subpart = explode('.', $rowcheckdomains['vh_name_vc']);
-						foreach($subpart as $subcheck){
-							if (strlen($subcheck) > 3){
-								if ($subcheck == $check){
-									if(substr($domain, -7) == substr($rowcheckdomains['vh_name_vc'], -7)){
-									header("location: " .GetNormalModuleURL($returnurl). "&r=nosub");
-									exit;
-									}
-								}
-							}
-						}
-					}
-				}
-    		}	
-		}
-	} 
+    if (substr_count($domain, ".") > 1) {
+        $part = explode('.', $domain);
+        foreach ($part as $check) {
+            if (!in_array($check, $SharedDomains)) {
+                if (strlen($check) > 3) {
+                    $sql = "SELECT * FROM z_vhosts WHERE vh_name_vc LIKE '%" . $check . "%' AND vh_type_in !='2' AND vh_deleted_ts IS NULL";
+                    $checkdomains = DataExchange("r", $z_db_name, $sql);
+                    while ($rowcheckdomains = mysql_fetch_assoc($checkdomains)) {
+                        $subpart = explode('.', $rowcheckdomains['vh_name_vc']);
+                        foreach ($subpart as $subcheck) {
+                            if (strlen($subcheck) > 3) {
+                                if ($subcheck == $check) {
+                                    if (substr($domain, -7) == substr($rowcheckdomains['vh_name_vc'], -7)) {
+                                        header("location: " . GetNormalModuleURL($returnurl) . "&r=nosub");
+                                        exit;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
     $sql = "SELECT * FROM z_vhosts WHERE vh_name_vc='" . $domain . "' AND vh_deleted_ts IS NULL";
     $activedomains = DataExchange("r", $z_db_name, $sql);
     $rowactivedomains = mysql_fetch_assoc($activedomains);
@@ -538,6 +543,11 @@ if ($_POST['inAction'] == 'delete') {
                         zapi_filesystem_remove("C:/Program Files/hMailServer/Data/" . $rowdomains['vh_name_vc'] . "/");
                     }
                 }
+            } else {
+                # Now we delete the domain from the Postfix database.
+                $postfixdatabase = GetSystemOption('hmailserver_db');
+                $sql = "DELETE FROM domains WHERE domain = '" . $rowdomains['vh_name_vc'] . "'";
+                DataExchange("w", $postfixdatabase, $sql);
             }
 
             # Remove the domain from the MySQL database now..
