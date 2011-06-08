@@ -11,6 +11,21 @@ apache_config=/etc/apache2/apache2.conf
 # ProFTPd configuration file path
 proftpd_config=/etc/proftpd/proftpd.conf
 
+# PostFix configuration files
+postfix_main_config=/etc/postfix/main.cf
+postfix_master_config=/etc/postfix/master.cf
+mysql_relay_domains_maps=/etc/postfix/mysql_relay_domains_maps.cf
+mysql_virtual_alias_maps=/etc/postfix/mysql_virtual_alias_maps.cf
+mysql_virtual_domains_maps=/etc/postfix/mysql_virtual_domains_maps.cf
+mysql_virtual_mailbox_limit_maps=/etc/postfix/mysql_virtual_mailbox_limit_maps.cf
+mysql_virtual_mailbox_maps=/etc/postfix/mysql_virtual_mailbox_maps.cf
+mysql_virtual_transport=/etc/postfix/mysql_virtual_transport.cf
+
+# Dovecot configuration files
+dovecot_config=/etc/dovecot/dovecot.conf
+dovecot_sql_config=/etc/postfix/dovecot-sql.conf
+dovecot_trash_config=/etc/postfix/dovecot-trash.conf
+
 clear
 echo "#########################################################"
 echo "# ZPanel Installation Package for Ubuntu Linux          #"
@@ -33,7 +48,22 @@ read continue
 
 # Install the required development enviroment packages...
 sudo apt-get update
+sudo apt-get upgrade
 sudo apt-get install apache2 libapache2-mod-php5 libapache2-mod-bw php5 php5-cli php5-common php5-mysql php5-curl php5-gd php-pear php5-imagick php5-imap php5-mcrypt php5-xmlrpc php5-xsl php5-suhosin mysql-server mysql-client subversion zip proftpd webalizer
+
+echo "#########################################################"
+echo "# Installing Postfix                                    #"
+echo "# --------------------------------------------          #"
+echo "# When asked please select 'INTERNET SITE'              #"
+echo "########################################################"
+echo "Press ENTER to continue with the installation..."
+read continue
+sudo apt-get install postfix postfix-mysql dovecot-imapd dovecot-pop3d dovecot-common
+
+# configure Suhosin
+echo "suhosin.session.encrypt = Off" >> /etc/php5/conf.d/suhosin.ini
+echo "suhosin.cookie.encrypt = Off" >> /etc/php5/conf.d/suhosin.ini
+echo "suhosin.memory.limit = 512M" >> /etc/php5/conf.d/suhosin.ini
 
 # Add 'include' to the Apache configuration file..
 echo "# Include the ZPanel HTTPD managed configuration file." >> ${apache_config}
@@ -59,8 +89,14 @@ sudo mkdir /var/zpanel/logs/domains/
 sudo mkdir /var/zpanel/logs/domains/zadmin/
 sudo mkdir /var/zpanel/logs/proftpd/
 
+echo "#########################################################"
+echo "# Getting latest ZPanel SVN Revision                    #"
+echo "# --------------------------------------------          #"
+echo "# You may now be asked to accept the SSL certificate    #"
+echo "# for our SVN repository...                             #"
+echo "########################################################"
+
 # Download the contents of the SVN repository..
-echo "You may now be asked to accept the SSL certificate for our SVN repository..."
 sudo svn co https://svn.zpanelcp.com/svnroot/zpanelcp/trunk /etc/zpanel/
 
 # Set the security on these directories
@@ -71,9 +107,16 @@ sudo chmod -R g+s /var/zpanel
 sudo chmod -R 777 /etc/zpanel/
 sudo chmod -R 777 /var/zpanel/
 
+
+
 # Restart ProFTPd and Apache...
 sudo /etc/init.d/proftpd restart
 sudo /etc/init.d/apache2 restart
+
+echo "#########################################################"
+echo "# Import ZPanel SQL Databases                           #"
+echo "# --------------------------------------------          #"
+echo "########################################################"
 
 echo "Please now enter the root MySQL password so I can import the databases and create the ZPanel DB config file:"
 read password
@@ -84,7 +127,17 @@ echo "  ^ Done"
 echo "> Importing zpanel_postfix database.."
 mysql -uroot -p${password} < /etc/zpanel/lib/dev/zpanel_postfix.sql
 echo "  ^ Done!"
+echo "> Importing the zpanel_roundcube database"
+mysql -uroot -p${password} < /etc/zpanel/lib/dev/zpanel_roundcube.sql
+echo "  ^ Done!"
 echo "> Writing the zpanel database configuration file.."
+
+# Add a cron task to run deamon every 30 mins...
+touch /etc/cron.d/zdaemon
+echo "*/30 * * * * root /usr/bin/php -q /etc/zpanel/daemon.php" >> /etc/cron.d/zdaemon
+# Permissions must be 644 or cron will not run!
+sudo chmod 644 /etc/cron.d/zdaemon
+service cron restart
 
 echo "<?php" >> /etc/zpanel/conf/zcnf.php
 echo "" >> /etc/zpanel/conf/zcnf.php
@@ -115,7 +168,7 @@ echo " */" >> /etc/zpanel/conf/zcnf.php
 echo "\$z_db_host = \"localhost\";" >> /etc/zpanel/conf/zcnf.php
 echo "\$z_db_name = \"zpanel_core\";" >> /etc/zpanel/conf/zcnf.php
 echo "\$z_db_user = \"root\";" >> /etc/zpanel/conf/zcnf.php
-echo "\$z_db_pass = \"$password\";" >> /etc/zpanel/conf/zcnf.php
+echo "\$z_db_pass = \"${password}\";" >> /etc/zpanel/conf/zcnf.php
 echo "\$zdb = @mysql_pconnect(\$z_db_host, \$z_db_user, \$z_db_pass) or trigger_error('ZPanel Stack Error :: Unable to connect to ZPanel Database Server (' . \$z_db_host . ').');" >> /etc/zpanel/conf/zcnf.php
 echo "?>" >> /etc/zpanel/conf/zcnf.php
 echo "  ^ Done"
@@ -125,6 +178,11 @@ chmod 644 /etc/zpanel/apps/phpmyadmin/config.inc.php
 
 # Setup the default virtual host for the control panel
 clear
+echo "#########################################################"
+echo "# Configure Control Panel VHost                         #"
+echo "# --------------------------------------------          #"
+echo "########################################################"
+echo ""
 echo "ENTER THE DOMAIN/SUBDOMAIN THAT WILL HOST ZPANEL EG. 'CONTROL.YOURDOMAIN.COM'"
 echo " "
 read domain
@@ -156,11 +214,363 @@ echo "	########################################################" >> /etc/zpanel/
 echo "	# ZPanel generated VHOST configurations below.....     #" >> /etc/zpanel/conf/httpd-vhosts.conf
 echo "	########################################################" >> /etc/zpanel/conf/httpd-vhosts.conf
 
-service apache2 restart
-
+# Add ZPanel CP to hosts file
 echo "127.0.0.1			${domain}">> /etc/hosts
 
-echo "===================================================="
+################################################################################################
+# BEGIN Configure Postfix Mail Server ##########################################################
+################################################################################################
+# Create a vmail user to store email files
+mkdir -p /var/zpanel/vmail
+chmod -R 777 /var/zpanel/vmail
+chmod -R g+s /var/zpanel/vmail
+chown vmail.vmail /var/zpanel/vmail
+sudo groupadd -g 5000 vmail
+sudo useradd -m -g vmail -u 5000 -d /var/zpanel/vmail -s /bin/bash vmail
+
+# Postfix Master.cf
+echo "# Dovecot LDA" >> ${postfix_master_config}
+echo "dovecot   unix  -       n       n       -       -       pipe" >> ${postfix_master_config}
+echo "  flags=DRhu user=vmail:mail argv=/usr/lib/dovecot/deliver -d ${recipient}" >> ${postfix_master_config}
+
+#BACKUP OLD MAIN CONFIG FOR TESTING
+cp ${postfix_main_config} ${postfix_main_config}.old
+# Postfix Main.cf
+echo "#########################################################################" > ${postfix_main_config}
+echo "# HOST CONFIGURATION" >> ${postfix_main_config}
+echo "#########################################################################" >> ${postfix_main_config}
+echo "myhostname = ${domain}" >> ${postfix_main_config}
+echo "mydomain   = ${domain}" >> ${postfix_main_config}
+echo "myorigin   = \$myhostname" >> ${postfix_main_config}
+echo "#########################################################################" >> ${postfix_main_config}
+echo "# MAIN CONFIGURATION" >> ${postfix_main_config}
+echo "#########################################################################" >> ${postfix_main_config}
+echo "mynetworks          = all" >> ${postfix_main_config}
+echo "inet_interfaces     = all" >> ${postfix_main_config}
+echo "mydestination       = \$myhostname, localhost.\$mydomain, localhost, \$mydomain" >> ${postfix_main_config}
+echo "queue_directory     = /var/spool/postfix" >> ${postfix_main_config}
+echo "command_directory   = /usr/sbin" >> ${postfix_main_config}
+echo "daemon_directory    = /usr/lib/postfix" >> ${postfix_main_config}
+echo "mail_owner          = postfix" >> ${postfix_main_config}
+echo "alias_maps          = hash:/etc/aliases" >> ${postfix_main_config}
+echo "alias_database      = hash:/etc/aliases" >> ${postfix_main_config}
+echo "sendmail_path       = /usr/sbin/sendmail.postfix" >> ${postfix_main_config}
+echo "newaliases_path     = /usr/bin/newaliases.postfix" >> ${postfix_main_config}
+echo "mailq_path          = /usr/bin/mailq.postfix" >> ${postfix_main_config}
+echo "setgid_group        = postdrop" >> ${postfix_main_config}
+echo "html_directory      = no" >> ${postfix_main_config}
+echo "manpage_directory   = /usr/share/man" >> ${postfix_main_config}
+echo "sample_directory    = /usr/share/doc/postfix-2.3.3/samples" >> ${postfix_main_config}
+echo "readme_directory    = /usr/share/doc/postfix-2.3.3/README_FILES" >> ${postfix_main_config}
+echo "mailbox_size_limit  = 0" >> ${postfix_main_config}
+echo "recipient_delimiter = +" >> ${postfix_main_config}
+echo "smtpd_helo_required             = yes" >> ${postfix_main_config}
+echo "disable_vrfy_command            = yes" >> ${postfix_main_config}
+echo "non_fqdn_reject_code            = 450" >> ${postfix_main_config}
+echo "invalid_hostname_reject_code    = 450" >> ${postfix_main_config}
+echo "maps_rbl_reject_code            = 450" >> ${postfix_main_config}
+echo "#unverified_sender_reject_code  = 550" >> ${postfix_main_config}
+echo "unknown_local_recipient_reject_code = 550" >> ${postfix_main_config}
+echo "#########################################################################" >> ${postfix_main_config}
+echo "# SASL CONFIGURATION" >> ${postfix_main_config}
+echo "#########################################################################" >> ${postfix_main_config}
+echo "smtpd_sasl_auth_enable         = yes" >> ${postfix_main_config}
+echo "broken_sasl_auth_clients       = yes" >> ${postfix_main_config}
+echo "smtpd_sasl_exceptions_networks = \$mynetworks" >> ${postfix_main_config}
+echo "smtpd_sasl_type                = dovecot" >> ${postfix_main_config}
+echo "smtpd_sasl_path                = private/auth" >> ${postfix_main_config}
+echo "smtpd_sasl_security_options    = noanonymous" >> ${postfix_main_config}
+echo "smtpd_recipient_restrictions   = permit_mynetworks," >> ${postfix_main_config}
+echo "		         permit_sasl_authenticated," >> ${postfix_main_config}
+echo "				 reject_unauth_destination," >> ${postfix_main_config}
+echo "				 reject_unauth_pipelining," >> ${postfix_main_config}
+echo "				 reject_non_fqdn_sender," >> ${postfix_main_config}
+echo "				 reject_non_fqdn_recipient," >> ${postfix_main_config}
+echo "				 reject_unknown_sender_domain," >> ${postfix_main_config}
+echo "				 reject_unknown_recipient_domain," >> ${postfix_main_config}
+echo "				 reject_invalid_helo_hostname," >> ${postfix_main_config}
+echo "        		 warn_if_reject reject_non_fqdn_helo_hostname," >> ${postfix_main_config}
+echo "        		 warn_if_reject reject_unknown_helo_hostname," >> ${postfix_main_config}
+echo "        		 warn_if_reject reject_unknown_client," >> ${postfix_main_config}
+echo "        		 reject_rbl_client zen.spamhaus.org," >> ${postfix_main_config}
+echo "        		 reject_rbl_client bl.spamcop.net," >> ${postfix_main_config}
+echo "        		 reject_rbl_client dnsbl.sorbs.net=127.0.0.2," >> ${postfix_main_config}
+echo "        		 reject_rbl_client dnsbl.sorbs.net=127.0.0.3," >> ${postfix_main_config}
+echo "        		 reject_rbl_client dnsbl.sorbs.net=127.0.0.4," >> ${postfix_main_config}
+echo "        		 reject_rbl_client dnsbl.sorbs.net=127.0.0.5," >> ${postfix_main_config}
+echo "        		 reject_rbl_client dnsbl.sorbs.net=127.0.0.7," >> ${postfix_main_config}
+echo "        		 reject_rbl_client dnsbl.sorbs.net=127.0.0.9," >> ${postfix_main_config}
+echo "        		 reject_rbl_client dnsbl.sorbs.net=127.0.0.11," >> ${postfix_main_config}
+echo "        		 reject_rbl_client dnsbl.sorbs.net=127.0.0.12," >> ${postfix_main_config}
+echo "        		 warn_if_reject reject_rhsbl_sender dsn.rfc-ignorant.org," >> ${postfix_main_config}
+echo "        		 warn_if_reject reject_rhsbl_sender abuse.rfc-ignorant.org," >> ${postfix_main_config}
+echo "        		 warn_if_reject reject_rhsbl_sender whois.rfc-ignorant.org," >> ${postfix_main_config}
+echo "        		 warn_if_reject reject_rhsbl_sender bogusmx.rfc-ignorant.org," >> ${postfix_main_config}
+echo "        		 warn_if_reject reject_rhsbl_sender postmaster.rfc-ignorant.org" >> ${postfix_main_config}
+echo "smtpd_sender_restrictions      = permit_mynetworks," >> ${postfix_main_config}
+echo "				 permit_sasl_authenticated," >> ${postfix_main_config}
+echo "				 reject_unauth_pipelining," >> ${postfix_main_config}
+echo "				 reject_non_fqdn_sender," >> ${postfix_main_config}
+echo "				 reject_unknown_sender_domain" >> ${postfix_main_config}
+echo "smtpd_data_restrictions        = reject_unauth_pipelining," >> ${postfix_main_config}
+echo "        			 reject_multi_recipient_bounce" >> ${postfix_main_config}
+echo "#########################################################################" >> ${postfix_main_config}
+echo "# TLS CONFIGURATION" >> ${postfix_main_config}
+echo "#########################################################################" >> ${postfix_main_config}
+echo "#smtp_tls_CAfile                   = /etc/pki/tls/certs/cert.pem" >> ${postfix_main_config}
+echo "#smtp_tls_cert_file                = /etc/pki/tls/certs/myserver.example.com.crt" >> ${postfix_main_config}
+echo "#smtp_tls_key_file                 = /etc/pki/tls/private/myserver.example.com.key" >> ${postfix_main_config}
+echo "##Postfix 2.5 or greater must use:##" >> ${postfix_main_config}
+echo "##smtp_tls_session_cache_database  = btree:\$data_directory/smtp_tls_session_cache" >> ${postfix_main_config}
+echo "#smtp_tls_session_cache_database   = btree:/var/spool/postfix/smtp_tls_session_cache" >> ${postfix_main_config}
+echo "#smtp_tls_security_level = may" >> ${postfix_main_config}
+echo "#smtpd_tls_CAfile                  = /etc/pki/tls/certs/cert.pem" >> ${postfix_main_config}
+echo "#smtpd_tls_cert_file               = /etc/pki/tls/certs/myserver.example.com.crt" >> ${postfix_main_config}
+echo "#smtpd_tls_key_file                = /etc/pki/tls/private/myserver.example.com.key" >> ${postfix_main_config}
+echo "##Postfix 2.5 or greater must use:##" >> ${postfix_main_config}
+echo "##smtpd_tls_session_cache_database = btree:\$data_directory/smtpd_tls_session_cache" >> ${postfix_main_config}
+echo "#smtpd_tls_session_cache_database  = btree:/var/spool/postfix/smtpd_tls_session_cache" >> ${postfix_main_config}
+echo "#smtpd_tls_dh1024_param_file       = \$config_directory/dh_1024.pem" >> ${postfix_main_config}
+echo "#smtpd_tls_dh512_param_file        = \$config_directory/dh_512.pem" >> ${postfix_main_config}
+echo "#smtpd_tls_security_level          = may" >> ${postfix_main_config}
+echo "#smtpd_tls_received_header         = yes" >> ${postfix_main_config}
+echo "#smtpd_tls_ask_ccert               = yes" >> ${postfix_main_config}
+echo "#smtpd_tls_loglevel                = 1" >> ${postfix_main_config}
+echo "#tls_random_source                 = dev:/dev/urandom" >> ${postfix_main_config}
+echo "#########################################################################" >> ${postfix_main_config}
+echo "# SPECIAL CONFIGURATION EXTRAS" >> ${postfix_main_config}
+echo "#########################################################################" >> ${postfix_main_config}
+echo "#default_privs        = nobody" >> ${postfix_main_config}
+echo "#proxy_interfaces     = 1.2.3.4" >> ${postfix_main_config}
+echo "#relay_domains        = \$mydestination" >> ${postfix_main_config}
+echo "#relayhost            = [gateway.my.domain]" >> ${postfix_main_config}
+echo "#relayhost            = [an.ip.add.ress]" >> ${postfix_main_config}
+echo "#relay_recipient_maps = hash:/etc/postfix/relay_recipients" >> ${postfix_main_config}
+echo "#in_flow_delay        = 1s" >> ${postfix_main_config}
+echo "#recipient_delimiter  = +" >> ${postfix_main_config}
+echo "#home_mailbox         = Maildir/" >> ${postfix_main_config}
+echo "#mail_spool_directory = /var/spool/mail" >> ${postfix_main_config}
+echo "#mailbox_command      = /some/where/procmail" >> ${postfix_main_config}
+echo "#mailbox_transport    = cyrus" >> ${postfix_main_config}
+echo "#fallback_transport   = lmtp:unix:/var/lib/imap/socket/lmtp" >> ${postfix_main_config}
+echo "#luser_relay          = \$user@other.host" >> ${postfix_main_config}
+echo "#header_checks        = regexp:/etc/postfix/header_checks" >> ${postfix_main_config}
+echo "#fast_flush_domains   = \$relay_domains" >> ${postfix_main_config}
+echo "#smtpd_banner         = \$myhostname ESMTP $mail_name ($mail_version)" >> ${postfix_main_config}
+echo "#local_destination_concurrency_limit   = 2" >> ${postfix_main_config}
+echo "#default_destination_concurrency_limit = 20" >> ${postfix_main_config}
+echo "#########################################################################" >> ${postfix_main_config}
+echo "# DEBUG CONFIGURATION" >> ${postfix_main_config}
+echo "#########################################################################" >> ${postfix_main_config}
+echo "#debug_peer_list = 127.0.0.1" >> ${postfix_main_config}
+echo "#debug_peer_list = some.domain" >> ${postfix_main_config}
+echo "debugger_command =" >> ${postfix_main_config}
+echo "	 PATH=/bin:/usr/bin:/usr/local/bin:/usr/X11R6/bin" >> ${postfix_main_config}
+echo "	 xxgdb $daemon_directory/\$process_name \$process_id & sleep 5" >> ${postfix_main_config}
+echo "# debugger_command =" >> ${postfix_main_config}
+echo "#	PATH=/bin:/usr/bin:/usr/local/bin; export PATH; (echo cont;" >> ${postfix_main_config}
+echo "#	echo where) | gdb \$daemon_directory/\$process_name \$process_id 2>&1" >> ${postfix_main_config}
+echo "#	>\$config_directory/\$process_name.\$process_id.log & sleep 5" >> ${postfix_main_config}
+echo "#" >> ${postfix_main_config}
+echo "# debugger_command =" >> ${postfix_main_config}
+echo "#	PATH=/bin:/usr/bin:/sbin:/usr/sbin; export PATH; screen" >> ${postfix_main_config}
+echo "#	-dmS \$process_name gdb \$daemon_directory/\$process_name" >> ${postfix_main_config}
+echo "#	\$process_id & sleep 1" >> ${postfix_main_config}
+echo "#########################################################################" >> ${postfix_main_config}
+echo "# ZPANEL CONFIGURATION" >> ${postfix_main_config}
+echo "#########################################################################" >> ${postfix_main_config}
+echo "#transport_maps                = mysql:${mysql_virtual_transport}" >> ${postfix_main_config}
+echo "#relay_domains                 = mysql:${mysql_relay_domains_maps}" >> ${postfix_main_config}
+echo "virtual_alias_maps             = mysql:${mysql_virtual_alias_maps}" >> ${postfix_main_config}
+echo "virtual_mailbox_domains        = mysql:${mysql_virtual_domains_maps}" >> ${postfix_main_config}
+echo "virtual_mailbox_maps           = mysql:${mysql_virtual_mailbox_maps}" >> ${postfix_main_config}
+echo "virtual_mailbox_limit          = 51200000" >> ${postfix_main_config}
+echo "virtual_minimum_uid            = 5000" >> ${postfix_main_config}
+echo "virtual_uid_maps               = static:5000" >> ${postfix_main_config}
+echo "virtual_gid_maps               = static:5000" >> ${postfix_main_config}
+echo "virtual_mailbox_base           = /var/zpanel/vmail" >> ${postfix_main_config}
+echo "virtual_transport              = virtual" >> ${postfix_main_config}
+echo "virtual_create_maildirsize     = yes" >> ${postfix_main_config}
+echo "virtual_mailbox_extended       = yes" >> ${postfix_main_config}
+echo "virtual_mailbox_limit_maps     = mysql:${mysql_virtual_mailbox_limit_maps}" >> ${postfix_main_config}
+echo "virtual_mailbox_limit_override = yes" >> ${postfix_main_config}
+echo "virtual_maildir_limit_message  = Sorry, the user's maildir has no space available in their inbox." >> ${postfix_main_config}
+echo "virtual_overquota_bounce       = yes" >> ${postfix_main_config}
+echo "local_transport                = virtual" >> ${postfix_main_config}
+echo "dovecot_destination_recipient_limit = 1" >> ${postfix_main_config}
+
+# Dovecot Conf
+echo "protocols = imap imaps pop3 pop3s" > ${dovecot_config}
+echo "log_timestamp = '%Y-%m-%d %H:%M:%S'" >> ${dovecot_config}
+echo "mail_location = maildir:/var/zpanel/vmail/%d/%n/Maildir" >> ${dovecot_config}
+echo "" >> ${dovecot_config}
+echo "ssl_cert_file = /etc/ssl/certs/dovecot.pem" >> ${dovecot_config}
+echo "ssl_key_file = /etc/ssl/private/dovecot.pem" >> ${dovecot_config}
+echo "" >> ${dovecot_config}
+echo "namespace private {" >> ${dovecot_config}
+echo "    separator = ." >> ${dovecot_config}
+echo "    prefix = INBOX." >> ${dovecot_config}
+echo "    inbox = yes" >> ${dovecot_config}
+echo "}" >> ${dovecot_config}
+echo "" >> ${dovecot_config}
+echo "protocol lda {" >> ${dovecot_config}
+echo "    log_path = /var/zpanel/vmail/dovecot-deliver.log" >> ${dovecot_config}
+echo "    auth_socket_path = /var/run/dovecot/auth-master" >> ${dovecot_config}
+echo "    postmaster_address = postmaster@${domain}" >> ${dovecot_config}
+echo "    mail_plugins = sieve" >> ${dovecot_config}
+echo "    global_script_path = /var/zpanel/vmail/globalsieverc" >> ${dovecot_config}
+echo "}" >> ${dovecot_config}
+echo "" >> ${dovecot_config}
+echo "protocol pop3 {" >> ${dovecot_config}
+echo "    pop3_uidl_format = %08Xu%08Xv" >> ${dovecot_config}
+echo "}" >> ${dovecot_config}
+echo "" >> ${dovecot_config}
+echo "auth default {" >> ${dovecot_config}
+echo "    user = root" >> ${dovecot_config}
+echo "" >> ${dovecot_config}
+echo "    passdb sql {" >> ${dovecot_config}
+echo "        args = ${dovecot_sql_config}" >> ${dovecot_config}
+echo "    }" >> ${dovecot_config}
+echo "" >> ${dovecot_config}
+echo "    userdb static {" >> ${dovecot_config}
+echo "        args = uid=5000 gid=5000 home=/var/zpanel/vmail/%d/%n allow_all_users=yes" >> ${dovecot_config}
+echo "    }" >> ${dovecot_config}
+echo "" >> ${dovecot_config}
+echo "    socket listen {" >> ${dovecot_config}
+echo "        master {" >> ${dovecot_config}
+echo "            path = /var/run/dovecot/auth-master" >> ${dovecot_config}
+echo "            mode = 0600" >> ${dovecot_config}
+echo "            user = vmail" >> ${dovecot_config}
+echo "        }" >> ${dovecot_config}
+echo "" >> ${dovecot_config}
+echo "        client {" >> ${dovecot_config}
+echo "            path = /var/spool/postfix/private/auth" >> ${dovecot_config}
+echo "            mode = 0660" >> ${dovecot_config}
+echo "            user = postfix" >> ${dovecot_config}
+echo "            group = postfix" >> ${dovecot_config}
+echo "        }" >> ${dovecot_config}
+echo "    }" >> ${dovecot_config}
+echo "}" >> ${dovecot_config}
+echo "plugin {" >> ${dovecot_config}
+echo "  quota = maildir:storage=10240:messages=1000" >> ${dovecot_config}
+echo "  #acl  = vfile:/etc/dovecot/acls" >> ${dovecot_config}
+echo "  trash = ${dovecot_trash_config}" >> ${dovecot_config}
+echo "}" >> ${dovecot_config}
+
+# Allow vmail user to access configuration
+#chgrp vmail ${dovecot_config}
+#chmod g+r ${dovecot_config}
+
+# Postfix and dovecot sql mappings
+touch ${dovecot_sql_config}
+chmod 777 ${dovecot_sql_config}
+echo "driver = mysql" > ${dovecot_sql_config}
+echo "connect = host=127.0.0.1 dbname=zpanel_postfix user=root password=${password}" >> ${dovecot_sql_config}
+echo "default_pass_scheme = PLAIN" >> ${dovecot_sql_config}
+echo "password_query = SELECT username as user, password, '/var/zpanel/vmail/%d/%n' as userdb_home, 'maildir:/var/zpanel/vmail/%d/%n' as userdb_mail, 5000 as userdb_uid, 5000 as userdb_gid FROM mailbox WHERE username = '%u' AND active = '1'" >> ${dovecot_sql_config}
+
+touch ${dovecot_trash_config}
+chmod 777 ${dovecot_trash_config}
+echo "1 Spam" > ${dovecot_trash_config}
+echo "2 Trash" >> ${dovecot_trash_config}
+echo "3 Junk" >> ${dovecot_trash_config}
+
+touch ${mysql_relay_domains_maps}
+chmod 777 ${mysql_relay_domains_maps}
+echo "user = root" > ${mysql_relay_domains_maps}
+echo "password = ${password}" >> ${mysql_relay_domains_maps}
+echo "hosts = 127.0.0.1" >> ${mysql_relay_domains_maps}
+echo "dbname = zpanel_postfix" >> ${mysql_relay_domains_maps}
+echo "table = domain" >> ${mysql_relay_domains_maps}
+echo "select_field = domain" >> ${mysql_relay_domains_maps}
+echo "where_field = domain" >> ${mysql_relay_domains_maps}
+echo "additional_conditions = and backupmx = '1'" >> ${mysql_relay_domains_maps}
+
+touch ${mysql_virtual_alias_maps}
+chmod 777 ${mysql_virtual_alias_maps}
+echo "user = root" > ${mysql_virtual_alias_maps}
+echo "password = ${password}" >> ${mysql_virtual_alias_maps}
+echo "hosts = 127.0.0.1" >> ${mysql_virtual_alias_maps}
+echo "dbname = zpanel_postfix" >> ${mysql_virtual_alias_maps}
+echo "table = alias" >> ${mysql_virtual_alias_maps}
+echo "select_field = goto" >> ${mysql_virtual_alias_maps}
+echo "where_field = address" >> ${mysql_virtual_alias_maps}
+
+touch ${mysql_virtual_domains_maps}
+chmod 777 ${mysql_virtual_domains_maps}
+echo "user = root" > ${mysql_virtual_domains_maps}
+echo "password = ${password}" >> ${mysql_virtual_domains_maps}
+echo "hosts = 127.0.0.1" >> ${mysql_virtual_domains_maps}
+echo "dbname = zpanel_postfix" >> ${mysql_virtual_domains_maps}
+echo "table = domain" >> ${mysql_virtual_domains_maps}
+echo "select_field = domain" >> ${mysql_virtual_domains_maps}
+echo "where_field = domain" >> ${mysql_virtual_domains_maps}
+echo "#additional_conditions = and backupmx = '0' and active = '1'" >> ${mysql_virtual_domains_maps}
+
+touch ${mysql_virtual_mailbox_limit_maps}
+chmod 777 ${mysql_virtual_mailbox_limit_maps}
+echo "user = root" > ${mysql_virtual_mailbox_limit_maps}
+echo "password = ${password}" >> ${mysql_virtual_mailbox_limit_maps}
+echo "hosts = 127.0.0.1" >> ${mysql_virtual_mailbox_limit_maps}
+echo "dbname = zpanel_postfix" >> ${mysql_virtual_mailbox_limit_maps}
+echo "table = mailbox" >> ${mysql_virtual_mailbox_limit_maps}
+echo "select_field = quota" >> ${mysql_virtual_mailbox_limit_maps}
+echo "where_field = username" >> ${mysql_virtual_mailbox_limit_maps}
+echo "#additional_conditions = and active = '1'" >> ${mysql_virtual_mailbox_limit_maps}
+
+touch ${mysql_virtual_mailbox_maps}
+chmod 777 ${mysql_virtual_mailbox_maps}
+echo "user = root" > ${mysql_virtual_mailbox_maps}
+echo "password = ${password}" >> ${mysql_virtual_mailbox_maps}
+echo "hosts = 127.0.0.1" >> ${mysql_virtual_mailbox_maps}
+echo "dbname = zpanel_postfix" >> ${mysql_virtual_mailbox_maps}
+echo "table = mailbox" >> ${mysql_virtual_mailbox_maps}
+echo "select_field = maildir" >> ${mysql_virtual_mailbox_maps}
+echo "where_field = username" >> ${mysql_virtual_mailbox_maps}
+echo "#additional_conditions = and active = '1'" >> ${mysql_virtual_mailbox_maps}
+
+touch ${mysql_virtual_transport}
+chmod 777 ${mysql_virtual_transport}
+echo "user = root" > ${mysql_virtual_transport}
+echo "password = ${password}" >> ${mysql_virtual_transport}
+echo "hosts = 127.0.0.1" >> ${mysql_virtual_transport}
+echo "dbname = zpanel_postfix" >> ${mysql_virtual_transport}
+echo "table = domain" >> ${mysql_virtual_transport}
+echo "select_field = transport" >> ${mysql_virtual_transport}
+echo "where_field = domain" >> ${mysql_virtual_transport}
+
+# Roundcube Webmail Config
+echo "<?php" > /etc/zpanel/apps/webmail/config/db.inc.php
+echo "\$rcmail_config = array();" >> /etc/zpanel/apps/webmail/config/db.inc.php
+echo "\$rcmail_config['db_dsnw'] = 'mysql://root:${password}@localhost/zpanel_roundcube';" >> /etc/zpanel/apps/webmail/config/db.inc.php
+echo "\$rcmail_config['db_dsnr'] = '';" >> /etc/zpanel/apps/webmail/config/db.inc.php
+echo "\$rcmail_config['db_max_length'] = 512000;" >> /etc/zpanel/apps/webmail/config/db.inc.php
+echo "\$rcmail_config['db_persistent'] = FALSE;" >> /etc/zpanel/apps/webmail/config/db.inc.php
+echo "\$rcmail_config['db_table_users'] = 'users';" >> /etc/zpanel/apps/webmail/config/db.inc.php
+echo "\$rcmail_config['db_table_identities'] = 'identities';" >> /etc/zpanel/apps/webmail/config/db.inc.php
+echo "\$rcmail_config['db_table_contacts'] = 'contacts';" >> /etc/zpanel/apps/webmail/config/db.inc.php
+echo "\$rcmail_config['db_table_session'] = 'session';" >> /etc/zpanel/apps/webmail/config/db.inc.php
+echo "\$rcmail_config['db_table_cache'] = 'cache';" >> /etc/zpanel/apps/webmail/config/db.inc.php
+echo "\$rcmail_config['db_table_messages'] = 'messages';" >> /etc/zpanel/apps/webmail/config/db.inc.php
+echo "\$rcmail_config['db_sequence_users'] = 'user_ids';" >> /etc/zpanel/apps/webmail/config/db.inc.php
+echo "\$rcmail_config['db_sequence_identities'] = 'identity_ids';" >> /etc/zpanel/apps/webmail/config/db.inc.php
+echo "\$rcmail_config['db_sequence_contacts'] = 'contact_ids';" >> /etc/zpanel/apps/webmail/config/db.inc.php
+echo "\$rcmail_config['db_sequence_cache'] = 'cache_ids';" >> /etc/zpanel/apps/webmail/config/db.inc.php
+echo "\$rcmail_config['db_sequence_messages'] = 'message_ids';" >> /etc/zpanel/apps/webmail/config/db.inc.php
+echo "?>" >> /etc/zpanel/apps/webmail/config/db.inc.php
+
+sudo chgrp postfix /etc/postfix/mysql_*.cf
+sudo chmod 777 /etc/postfix/mysql_*.cf
+
+service postfix restart
+service dovecot restart
+service apache2 restart
+
+################################################################################################
+# END Configure Postfix Mail Server ############################################################
+################################################################################################
+
+echo "=========================================================="
 echo "ZPanel has now been installed!"
 echo " "
 echo "IMPORTANT: Ensure you make a note of these settings"
@@ -177,8 +587,9 @@ echo "           CONTROL PANEL URL: http://${domain}"
 echo "           USERNAME: zadmin"
 echo "           PASSWORD: zadmin"
 echo ""
-echo "REQUIRED: You must still add a crontab entry to enable"
-echo "          the Zpanel daemon to run hourly, the line to"
-echo "          add to the crontabe (crontab -e) is as follows:"
-echo "          0 * * * * php /etc/zpanel/daemon.php
+#echo "REQUIRED: You must still add a crontab entry to enable"
+#echo "          the Zpanel daemon to run hourly, the line to"
+#echo "          add to the crontabe (crontab -e) is as follows:"
+#echo "          0 * * * * php /etc/zpanel/daemon.php
 
+#http://library.linode.com/email/postfix/dovecot-mysql-ubuntu-10.04-lucid

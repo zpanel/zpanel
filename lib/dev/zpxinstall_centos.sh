@@ -166,8 +166,8 @@ sudo yum --enablerepo=centosplus install postfix dovecot
 sudo chkconfig --levels 235 httpd on
 sudo chkconfig --levels 235 proftpd on
 sudo chkconfig --levels 235 mysqld on
-sudo chkconfig --levels 235 postfix on
-sudo chkconfig --levels 235 dovecot on
+sudo chkconfig --levels 345 postfix on
+sudo chkconfig --levels 345 dovecot on
 service httpd start
 service mysqld start
 service proftpd start
@@ -182,9 +182,10 @@ echo "########################################################"
 
 # Add a cron task to run deamon every 30 mins...
 touch /etc/cron.d/zdaemon
-echo "0/30 * * * * root /usr/bin/php -q /etc/zpanel/daemon.php" >> /etc/cron.d/zdaemon
-# Set permissions so Apache can create cronjobs!
-sudo chmod 777 /etc/cron.d/zdaemon
+echo "*/30 * * * * root /usr/bin/php -q /etc/zpanel/daemon.php" >> /etc/cron.d/zdaemon
+# Permissions must be 644 or cron will not run!
+sudo chmod 644 /etc/cron.d/zdaemon
+service crond restart
 
 clear
 echo "#########################################################"
@@ -282,7 +283,8 @@ echo "127.0.0.1			${domain}">> /etc/hosts
 ################################################################################################
 # Create a vmail user to store email files
 mkdir -p /var/zpanel/vmail
-chmod 777 /var/zpanel/vmail
+chmod -R 777 /var/zpanel/vmail
+chmod -R g+s /var/zpanel/vmail
 sudo groupadd -g 5000 vmail
 sudo useradd -m -g vmail -u 5000 -d /var/zpanel/vmail -s /bin/bash vmail
 chown vmail.vmail /var/zpanel/vmail
@@ -290,7 +292,7 @@ chown vmail.vmail /var/zpanel/vmail
 # Postfix Master.cf
 echo "# Dovecot LDA" >> ${postfix_master_config}
 echo "dovecot   unix  -       n       n       -       -       pipe" >> ${postfix_master_config}
-echo "  flags=DRhu user=vmail:mail argv=/usr/libexec/dovecot/deliver -d ${recipient}" >> ${postfix_master_config}
+echo "  flags=DRhu user=vmail:vmail argv=/usr/libexec/dovecot/deliver -d ${recipient}" >> ${postfix_master_config}
 
 # Postfix Main.cf
 echo "#########################################################################" > ${postfix_main_config}
@@ -517,20 +519,20 @@ echo "}" >> ${dovecot_config}
 
 # Postfix and dovecot sql mappings
 touch ${dovecot_sql_config}
-chmod 755 ${dovecot_sql_config}
+chmod 777 ${dovecot_sql_config}
 echo "driver = mysql" > ${dovecot_sql_config}
 echo "connect = host=127.0.0.1 dbname=zpanel_postfix user=root password=${password}" >> ${dovecot_sql_config}
 echo "default_pass_scheme = PLAIN" >> ${dovecot_sql_config}
 echo "password_query = SELECT username as user, password, '/var/zpanel/vmail/%d/%n' as userdb_home, 'maildir:/var/zpanel/vmail/%d/%n' as userdb_mail, 5000 as userdb_uid, 5000 as userdb_gid FROM mailbox WHERE username = '%u' AND active = '1'" >> ${dovecot_sql_config}
 
 touch ${dovecot_trash_config}
-chmod 755 ${dovecot_trash_config}
+chmod 777 ${dovecot_trash_config}
 echo "1 Spam" > ${dovecot_trash_config}
 echo "2 Trash" >> ${dovecot_trash_config}
 echo "3 Junk" >> ${dovecot_trash_config}
 
 touch ${mysql_relay_domains_maps}
-chmod 640 ${mysql_relay_domains_maps}
+chmod 777 ${mysql_relay_domains_maps}
 echo "user = root" > ${mysql_relay_domains_maps}
 echo "password = ${password}" >> ${mysql_relay_domains_maps}
 echo "hosts = 127.0.0.1" >> ${mysql_relay_domains_maps}
@@ -541,7 +543,7 @@ echo "where_field = domain" >> ${mysql_relay_domains_maps}
 echo "additional_conditions = and backupmx = '1'" >> ${mysql_relay_domains_maps}
 
 touch ${mysql_virtual_alias_maps}
-chmod 640 ${mysql_virtual_alias_maps}
+chmod 777 ${mysql_virtual_alias_maps}
 echo "user = root" > ${mysql_virtual_alias_maps}
 echo "password = ${password}" >> ${mysql_virtual_alias_maps}
 echo "hosts = 127.0.0.1" >> ${mysql_virtual_alias_maps}
@@ -551,7 +553,7 @@ echo "select_field = goto" >> ${mysql_virtual_alias_maps}
 echo "where_field = address" >> ${mysql_virtual_alias_maps}
 
 touch ${mysql_virtual_domains_maps}
-chmod 640 ${mysql_virtual_domains_maps}
+chmod 777 ${mysql_virtual_domains_maps}
 echo "user = root" > ${mysql_virtual_domains_maps}
 echo "password = ${password}" >> ${mysql_virtual_domains_maps}
 echo "hosts = 127.0.0.1" >> ${mysql_virtual_domains_maps}
@@ -562,7 +564,7 @@ echo "where_field = domain" >> ${mysql_virtual_domains_maps}
 echo "#additional_conditions = and backupmx = '0' and active = '1'" >> ${mysql_virtual_domains_maps}
 
 touch ${mysql_virtual_mailbox_limit_maps}
-chmod 640 ${mysql_virtual_mailbox_limit_maps}
+chmod 777 ${mysql_virtual_mailbox_limit_maps}
 echo "user = root" > ${mysql_virtual_mailbox_limit_maps}
 echo "password = ${password}" >> ${mysql_virtual_mailbox_limit_maps}
 echo "hosts = 127.0.0.1" >> ${mysql_virtual_mailbox_limit_maps}
@@ -573,7 +575,7 @@ echo "where_field = username" >> ${mysql_virtual_mailbox_limit_maps}
 echo "#additional_conditions = and active = '1'" >> ${mysql_virtual_mailbox_limit_maps}
 
 touch ${mysql_virtual_mailbox_maps}
-chmod 640 ${mysql_virtual_mailbox_maps}
+chmod 777 ${mysql_virtual_mailbox_maps}
 echo "user = root" > ${mysql_virtual_mailbox_maps}
 echo "password = ${password}" >> ${mysql_virtual_mailbox_maps}
 echo "hosts = 127.0.0.1" >> ${mysql_virtual_mailbox_maps}
@@ -584,7 +586,7 @@ echo "where_field = username" >> ${mysql_virtual_mailbox_maps}
 echo "#additional_conditions = and active = '1'" >> ${mysql_virtual_mailbox_maps}
 
 touch ${mysql_virtual_transport}
-chmod 640 ${mysql_virtual_transport}
+chmod 777 ${mysql_virtual_transport}
 echo "user = root" > ${mysql_virtual_transport}
 echo "password = ${password}" >> ${mysql_virtual_transport}
 echo "hosts = 127.0.0.1" >> ${mysql_virtual_transport}
@@ -613,6 +615,9 @@ echo "\$rcmail_config['db_sequence_cache'] = 'cache_ids';" >> /etc/zpanel/apps/w
 echo "\$rcmail_config['db_sequence_messages'] = 'message_ids';" >> /etc/zpanel/apps/webmail/config/db.inc.php
 echo "?>" >> /etc/zpanel/apps/webmail/config/db.inc.php
 
+sudo chgrp postfix /etc/postfix/mysql_*.cf
+sudo chmod 777 /etc/postfix/mysql_*.cf
+
 service postfix start
 service dovecot start
 service httpd restart
@@ -638,7 +643,7 @@ echo "           CONTROL PANEL URL: http://${domain}"
 echo "           USERNAME: zadmin"
 echo "           PASSWORD: zadmin"
 echo ""
-echo "REQUIRED: You must still add a crontab entry to enable"
-echo "          the Zpanel daemon to run hourly, the line to"
-echo "          add to the crontabe (crontab -e) is as follows:"
-echo "          0 * * * * php /etc/zpanel/daemon.php"
+#echo "REQUIRED: You must still add a crontab entry to enable"
+#echo "          the Zpanel daemon to run hourly, the line to"
+#echo "          add to the crontabe (crontab -e) is as follows:"
+#echo "          0 * * * * php /etc/zpanel/daemon.php"
