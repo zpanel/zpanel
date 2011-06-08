@@ -43,11 +43,8 @@ echo "if you want to uninstall ZPanel that you re-install your OS."
 echo ""
 echo "We also recommend that ZPanel is installed on a dedicated server for security reasons!"
 echo ""
-echo "Are you sure you want to continue? [Y/n]"
-read -n 1 continue
-if ["$continue" == n]; then
-	exit 0
-fi
+echo "Are you sure you want to continue? Press ENTER to continue or CTRL+C to quit!"
+read continue
 
 # Install the required development enviroment packages...
 sudo yum update
@@ -197,7 +194,7 @@ echo "# --------------------------------------------          #"
 echo "########################################################"
 echo ""
 echo "Please now enter the root MySQL password so I can import the databases and create the ZPanel DB config file.."
-read -s -p "MySQL root password: " password
+read password
 echo "> Importing zpanel_core database.."
 mysql -uroot -p${password} < /etc/zpanel/lib/dev/zpanel_core.sql
 echo "  ^ Done"

@@ -53,6 +53,7 @@ function IsWindows() {
  */
 if (IsWindows() == true) {
     $zpanel_db_conf = "C:/ZPanel/panel/conf/zcnf.php";
+	$zpanel_db_conf = "C:/wamp/www/ZPanel/conf/zcnf.php";
 } else {
     $zpanel_db_conf = "/etc/zpanel/conf/zcnf.php";
 }
