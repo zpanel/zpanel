@@ -229,7 +229,7 @@ CustomLog \"" . GetSystemOption('logfile_dir') . $useraccount['ac_user_vc'] . "/
     } else {
         # Now we add the domain to the Postfix database.
         $postfixdatabase = GetSystemOption('hmailserver_db');
-        $sql = "INSERT INTO domains(domain) VALUES ('" . $domain . "')";
+        $sql = "INSERT INTO domain (domain) VALUES ('" . $domain . "')";
         DataExchange("w", $postfixdatabase, $sql);
     }
 
@@ -546,7 +546,7 @@ if ($_POST['inAction'] == 'delete') {
             } else {
                 # Now we delete the domain from the Postfix database.
                 $postfixdatabase = GetSystemOption('hmailserver_db');
-                $sql = "DELETE FROM domains WHERE domain = '" . $rowdomains['vh_name_vc'] . "'";
+                $sql = "DELETE FROM domain WHERE domain = '" . $rowdomains['vh_name_vc'] . "'";
                 DataExchange("w", $postfixdatabase, $sql);
             }
 

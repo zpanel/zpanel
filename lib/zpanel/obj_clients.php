@@ -358,7 +358,7 @@ if ($_POST['inAction'] == 'delete') {
                     } else {
                         # Now we delete the domain from the Postfix database.
                         $postfixdatabase = GetSystemOption('hmailserver_db');
-                        $sql = "DELETE FROM domains WHERE domain = '" . $rowvhosts['vh_name_vc'] . "'";
+                        $sql = "DELETE FROM domain WHERE domain = '" . $rowvhosts['vh_name_vc'] . "'";
                         DataExchange("w", $postfixdatabase, $sql);
                     }
                 } while ($rowvhosts = mysql_fetch_assoc($listvhosts));

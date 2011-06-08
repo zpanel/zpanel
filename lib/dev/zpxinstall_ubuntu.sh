@@ -43,16 +43,25 @@ echo "if you want to uninstall ZPanel that you re-install your OS."
 echo ""
 echo "We also recommend that ZPanel is installed on a dedicated server for security reasons!"
 echo ""
-echo "Press ENTER to continue with the installation... (or CTRL+C to quit)"
-read continue
+echo "Are you sure you want to continue? [Y/n]"
+read  -n1 continue
+if ["$continue" -eq "n"]; then
+	exit 0
+fi
 
 # Install the required development enviroment packages...
-sudo apt-get update
-sudo apt-get upgrade
-sudo apt-get install apache2 libapache2-mod-php5 libapache2-mod-bw php5 php5-cli php5-common php5-mysql php5-curl php5-gd php-pear php5-imagick php5-imap php5-mcrypt php5-xmlrpc php5-xsl php5-suhosin mysql-server mysql-client subversion zip proftpd webalizer
-
 echo "#########################################################"
-echo "# Installing Postfix                                    #"
+echo "# Updating package repository cache.                    #"
+echo "# --------------------------------------------          #"
+echo "########################################################"
+sudo apt-get update
+echo "#########################################################"
+echo "# Installing Apache, PHP, MySQL etc.                    #"
+echo "# --------------------------------------------          #"
+echo "########################################################"
+sudo apt-get install apache2 libapache2-mod-php5 libapache2-mod-bw php5 php5-cli php5-common php5-mysql php5-curl php5-gd php-pear php5-imagick php5-imap php5-mcrypt php5-xmlrpc php5-xsl php5-suhosin mysql-server mysql-client subversion zip proftpd webalizer
+echo "#########################################################"
+echo "# Installing Postfix and Dovecot                        #"
 echo "# --------------------------------------------          #"
 echo "# When asked please select 'INTERNET SITE'              #"
 echo "########################################################"
@@ -118,8 +127,8 @@ echo "# Import ZPanel SQL Databases                           #"
 echo "# --------------------------------------------          #"
 echo "########################################################"
 
-echo "Please now enter the root MySQL password so I can import the databases and create the ZPanel DB config file:"
-read password
+echo "Please now enter the root MySQL password so I can import the databases and create the ZPanel DB config file.."
+read -s -p "MySQL 'root' password: " password
 
 echo "> Importing zpanel_core database.."
 mysql -uroot -p${password} < /etc/zpanel/lib/dev/zpanel_core.sql
@@ -131,6 +140,7 @@ echo "> Importing the zpanel_roundcube database"
 mysql -uroot -p${password} < /etc/zpanel/lib/dev/zpanel_roundcube.sql
 echo "  ^ Done!"
 echo "> Writing the zpanel database configuration file.."
+
 
 # Add a cron task to run deamon every 30 mins...
 touch /etc/cron.d/zdaemon
@@ -183,7 +193,7 @@ echo "# Configure Control Panel VHost                         #"
 echo "# --------------------------------------------          #"
 echo "########################################################"
 echo ""
-echo "ENTER THE DOMAIN/SUBDOMAIN THAT WILL HOST ZPANEL EG. 'CONTROL.YOURDOMAIN.COM'"
+echo "Please enter the domain/subdomain that will host ZPanel eg. 'zpanel.yourdomain.com'"
 echo " "
 read domain
 echo "# ZPanel Apache Master VHOST file." > /etc/zpanel/conf/httpd-vhosts.conf
@@ -224,9 +234,10 @@ echo "127.0.0.1			${domain}">> /etc/hosts
 mkdir -p /var/zpanel/vmail
 chmod -R 777 /var/zpanel/vmail
 chmod -R g+s /var/zpanel/vmail
-chown vmail.vmail /var/zpanel/vmail
+
 sudo groupadd -g 5000 vmail
 sudo useradd -m -g vmail -u 5000 -d /var/zpanel/vmail -s /bin/bash vmail
+chown vmail.vmail /var/zpanel/vmail
 
 # Postfix Master.cf
 echo "# Dovecot LDA" >> ${postfix_master_config}
