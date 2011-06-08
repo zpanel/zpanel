@@ -623,8 +623,8 @@ sudo chgrp postfix /etc/postfix/mysql_*.cf
 sudo chmod 777 /etc/postfix/mysql_*.cf
 
 # Set the correct service names in the database for this distrubion...
-./etc/zpanel/lib/dev/setso --set -q lsn_apache httpd
-./etc/zpanel/lib/dev/setso --set -q lsn_proftpd proftpd
+/etc/zpanel/lib/dev/setso --set -q lsn_apache httpd
+/etc/zpanel/lib/dev/setso --set -q lsn_proftpd proftpd
 
 service postfix start
 service dovecot start
@@ -651,7 +651,3 @@ echo "           CONTROL PANEL URL: http://${domain}"
 echo "           USERNAME: zadmin"
 echo "           PASSWORD: zadmin"
 echo ""
-#echo "REQUIRED: You must still add a crontab entry to enable"
-#echo "          the Zpanel daemon to run hourly, the line to"
-#echo "          add to the crontabe (crontab -e) is as follows:"
-#echo "          0 * * * * php /etc/zpanel/daemon.php"
