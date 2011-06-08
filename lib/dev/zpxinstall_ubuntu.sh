@@ -562,6 +562,10 @@ echo "?>" >> /etc/zpanel/apps/webmail/config/db.inc.php
 sudo chgrp postfix /etc/postfix/mysql_*.cf
 sudo chmod 777 /etc/postfix/mysql_*.cf
 
+# Set the correct service names in the database for this distrubion...
+./etc/zpanel/lib/dev/setso --set -q lsn_apache apache2
+./etc/zpanel/lib/dev/setso --set -q lsn_proftpd proftpd
+
 service postfix restart
 service dovecot restart
 service apache2 restart
