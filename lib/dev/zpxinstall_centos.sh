@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # CentOS Linux Installation Script for Zpanel 6.1.0 (Development Enviroment)
 # Script written by Bobby Allen (ballen@zpanel.co.uk) 14/05/2011
@@ -43,8 +43,11 @@ echo "if you want to uninstall ZPanel that you re-install your OS."
 echo ""
 echo "We also recommend that ZPanel is installed on a dedicated server for security reasons!"
 echo ""
-echo "Press ENTER to continue with the installation... (or CTRL+C to quit)"
-read continue
+echo "Are you sure you want to continue? [Y/n]"
+read -n 1 continue
+if ["$continue" == n]; then
+	exit 0
+fi
 
 # Install the required development enviroment packages...
 sudo yum update
@@ -193,14 +196,18 @@ echo "# Import ZPanel SQL Databases                           #"
 echo "# --------------------------------------------          #"
 echo "########################################################"
 echo ""
-echo "Will now attempt to create and insert the ZPanel core database into MySQL, please enter the MySQL root password when asked..."
-echo "Enter MySQL root password:"
-read password
+echo "Please now enter the root MySQL password so I can import the databases and create the ZPanel DB config file.."
+read -s -p "MySQL root password: " password
+echo "> Importing zpanel_core database.."
 mysql -uroot -p${password} < /etc/zpanel/lib/dev/zpanel_core.sql
-echo "Will now attempt to create and insert the ZPanel postfix database into MySQL, please enter the MySQL root password again when asked..."
+echo "  ^ Done"
+echo "> Importing zpanel_postfix database.."
 mysql -uroot -p${password} < /etc/zpanel/lib/dev/zpanel_postfix.sql
-echo "Will now attempt to create and insert the ZPanel roundcube database into MySQL, please enter the MySQL root password again when asked..."
+echo "  ^ Done!"
+echo "> Importing the zpanel_roundcube database"
 mysql -uroot -p${password} < /etc/zpanel/lib/dev/zpanel_roundcube.sql
+echo "  ^ Done!"
+echo "> Writing the zpanel database configuration file.."
 
 echo "<?php" > /etc/zpanel/conf/zcnf.php
 echo "" >> /etc/zpanel/conf/zcnf.php

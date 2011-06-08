@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Ubuntu Linux Installation Script for Zpanel 6.1.0 (Development Enviroment)
 # Script written by Bobby Allen (ballen@zpanel.co.uk) 14/05/2011
@@ -44,8 +44,8 @@ echo ""
 echo "We also recommend that ZPanel is installed on a dedicated server for security reasons!"
 echo ""
 echo "Are you sure you want to continue? [Y/n]"
-read  -n1 continue
-if ["$continue" -eq "n"]; then
+read -n 1 continue
+if ["$continue" == n]; then
 	exit 0
 fi
 
@@ -128,7 +128,7 @@ echo "# --------------------------------------------          #"
 echo "########################################################"
 
 echo "Please now enter the root MySQL password so I can import the databases and create the ZPanel DB config file.."
-read -s -p "MySQL 'root' password: " password
+read -s -p "MySQL root password: " password
 
 echo "> Importing zpanel_core database.."
 mysql -uroot -p${password} < /etc/zpanel/lib/dev/zpanel_core.sql
@@ -602,9 +602,5 @@ echo "           CONTROL PANEL URL: http://${domain}"
 echo "           USERNAME: zadmin"
 echo "           PASSWORD: zadmin"
 echo ""
-#echo "REQUIRED: You must still add a crontab entry to enable"
-#echo "          the Zpanel daemon to run hourly, the line to"
-#echo "          add to the crontabe (crontab -e) is as follows:"
-#echo "          0 * * * * php /etc/zpanel/daemon.php
 
 #http://library.linode.com/email/postfix/dovecot-mysql-ubuntu-10.04-lucid
