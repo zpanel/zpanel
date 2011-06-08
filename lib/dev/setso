@@ -1,0 +1,177 @@
+#!/usr/bin/php
+<?php
+/**
+ *
+ * ZPanel - A Cross-Platform Open-Source Web Hosting Control panel.
+ * 
+ * @package ZPanel
+ * @version $Id$
+ * @author Bobby Allen - ballen@zpanelcp.com
+ * @copyright (c) 2008-2011 ZPanel Group - http://www.zpanelcp.com/
+ * @license http://opensource.org/licenses/gpl-3.0.html GNU Public License v3
+ *
+ * This program (ZPanel) is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+/**
+ * To be safe we increase the allowed memory usage (to ensure the upgrade doesn't bomb out half way throught
+ * we also set the time limit to infinete (it could be a large upgrade script!!)
+ */
+set_time_limit(0);
+ini_set('memory_limit', '256M');
+ini_set('error_reporting', E_ALL | E_STRICT);
+ini_set('display_errors', 'Off');
+ini_set('log_errors', 'Off');
+
+/**
+ * Check what OS is running, If Windows we need to set the DB include path different to that of POSIX based OSs.
+ */
+function IsWindows() {
+    # DESCRIPTION: Returns true if the OS is Windows.
+    # FUNCTION RELEASE: 6.1.0
+    # FUNCTION AUTHOR: Bobby Allen (ballen@zpanel.co.uk)
+    if (strtoupper(substr(PHP_OS, 0, 3)) == "WIN") {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+/**
+ * Lets establish the two common paths for both Windows and POSIX OS's
+ */
+if (IsWindows() == true) {
+    $zpanel_db_conf = "C:/ZPanel/panel/conf/zcnf.php";
+} else {
+    $zpanel_db_conf = "/etc/zpanel/conf/zcnf.php";
+}
+
+/**
+ * Load in some standard ZPanel functions required by the script...
+ * @todo Should really be included from a global file but for now this will do!
+ */
+function IsCLI() {
+    if (!defined('STDIN')) {
+        die("This tool is designed to be run from the console (terminal)\n");
+    }
+}
+
+function DataExchange($a, $b, $c) {
+    # DESCRIPTION: Safely queries the MySQL database as well as reports any issues with the Query into the logs table.
+    # FUNCTION RELEASE: 5.0.0
+    # FUNCTION AUTHOR: Bobby Allen (ballen@zpanel.co.uk)
+    global $zpanel_db_conf;
+    $querytype = $a;
+    $databaseconn = $b;
+    $sqlquery = $c;
+    include $zpanel_db_conf;
+    @mysql_select_db($z_db_name, $zdb) or die("Unable to select database, database (" . $z_db_name . ") appears to not exsist!\nMySQL Said: " . mysql_error() . "\n");
+    $fretval = false;
+
+    if ($querytype == 'r') {
+        $sql = mysql_query($sqlquery, $zdb) or die("MySQL database error, The [READ] query had an issue:\n\r" . $sqlquery . "\n\rMySQL Said:" . mysql_error() . "");
+        $fretval = $sql;
+    }
+    if ($querytype == 'l') {
+        $sql = mysql_query($sqlquery, $zdb) or die("MySQL database error, The [LIST] query had an issue:\n\r" . $sqlquery . "\n\rMySQL Said:" . mysql_error() . "");
+        $fretval = mysql_fetch_assoc($sql);
+    }
+    if ($querytype == 'w') {
+        $sql = mysql_query($sqlquery, $zdb) or die("MySQL database error, The [WRITE] query had an issue:\n\r" . $sqlquery . "\n\rMySQL Said:" . mysql_error() . "");
+        $fretval = true;
+    }
+    if ($querytype == 't') {
+        $sql = mysql_query($sqlquery, $zdb) or die("MySQL database error, The [SUM] query had an issue:\n\r" . $sqlquery . "\n\rMySQL Said:" . mysql_error() . "");
+        $fretval = mysql_num_rows($sql);
+    }
+    return $fretval;
+}
+
+function GetSystemOption($a=" ") {
+    # DESCRIPTION: Gets and returns a value from the 'z_settings' table.
+    # FUNCTION RELEASE: 5.0.0
+    # FUNCTION AUTHOR: Bobby Allen (ballen@zpanel.co.uk)
+    global $zpanel_db_conf;
+    $setting_name = $a;
+    include $zpanel_db_conf;
+    $sql = "SELECT * FROM z_settings WHERE st_name_vc = '" . $setting_name . "'";
+    $row_syssetting = DataExchange("l", $z_db_name, $sql);
+    $total_syssetting = DataExchange("t", $z_db_name, $sql);
+    if ($total_syssetting < 1) {
+        $fretval = "Value not found!";
+    } else {
+        $fretval = $row_syssetting['st_value_tx'];
+    }
+    return $fretval;
+}
+
+function TriggerLog($a=0, $b="No details.") {
+    # DESCRIPTION: Logs an event, for debugging or audit purposes in the 'z_logs' table.
+    # FUNCTION RELEASE: 5.0.0
+    # FUNCTION AUTHOR: Bobby Allen (ballen@zpanel.co.uk)
+    global $zpanel_db_conf;
+    $acc_key = $a;
+    $log_details = $b;
+    include $zpanel_db_conf;
+    $sql = "INSERT INTO z_logs (lg_acc_fk, lg_when_ts, lg_ipaddress_vc, lg_details_tx) VALUES (" . $acc_key . ", '" . time() . "', '" . $_SERVER['REMOTE_ADDR'] . "', '" . $log_details . "')";
+    DataExchange("w", $z_db_name, $sql);
+    return;
+}
+
+function SetSO($soname, $sovalue) {
+    # DESCRIPTION: Sets a System Option value.
+    # FUNCTION RELEASE: 6.1.0
+    # FUNCTION AUTHOR: Bobby Allen (ballen@zpanel.co.uk)
+    global $zpanel_db_conf;
+    include $zpanel_db_conf;
+    $sql = "UPDATE z_settings SET st_value_tx='" .$sovalue. "' WHERE st_name_vc='" .$soname. "'";
+    DataExchange("w", $z_db_name, $sql);
+    return;
+}
+
+/**
+ * We check to make sure the user is in command line mode to perform the system option table transaction.
+ */
+IsCLI();
+
+if(!isset($argv[1])){
+    echo "No parameters specified! Try: 'setso --help' for details.\n";
+}
+
+if($argv[1] == "--help"){
+    echo "ZPanel System Option CLI Tool\n";
+    echo "(C) ZPanel Project, written by Bobby Allen (ballen@Zpanel.co.uk)\n";
+    echo "================================================================\n";
+    echo "This tool is used to update system option values in the ZPanel database.\n\n";
+    echo " Syntax:\n";
+    echo "   setso --set -q (option_name) (new_value) Updates a system option quietly (no output).\n";
+    echo "   setso --set (option_name) (new_value)    Updates a system option.\n";
+    echo "   setso --show (option_name)               Displays the current system option value.\n";
+    echo "   setso --help                             Displays this help screen.\n\n\n";  
+}
+
+if($argv[1] == "--show"){
+    echo GetSystemOption($argv[2]);
+}
+
+if($argv[1] == "--set"){
+    if($argv[2]=="-q"){
+        SetSO($argv[3], $argv[4],1);
+    } else {
+        SetSO($argv[2], $argv[3]);
+        echo "System option updated successfully...\n" .$argv[2]. " => " .$argv[3]. "\n\n";
+    }
+}
+
+?>
