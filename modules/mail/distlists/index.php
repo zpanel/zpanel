@@ -47,6 +47,9 @@ if ((isset($_GET['r'])) && ($_GET['r'] == 'nodomain')) {
 if ((isset($_GET['r'])) && ($_GET['r'] == 'exists')) {
     echo "<br><div class=\"zannouce\">" . $lang['180'] . "</div>";
 }
+if ((isset($_GET['r'])) && ($_GET['r'] == 'notvalid')) {
+    echo "<br><div class=\"zannouce\">" . $lang['421'] . "</div>";
+}
 echo "<br><h2>" . $lang['201'] . "</h2>";
 if ($totaldistlists > 0) {
     ?><form id="frmDistLists" name="frmDistLists" method="post" action="runner.php?load=obj_mail">

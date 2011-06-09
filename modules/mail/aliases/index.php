@@ -55,6 +55,9 @@ if ((isset($_GET['r'])) && ($_GET['r'] == 'nodest')) {
 if ((isset($_GET['r'])) && ($_GET['r'] == 'exists')) {
     echo "<br><div class=\"zannouce\">" . $lang['180'] . "</div>";
 }
+if ((isset($_GET['r'])) && ($_GET['r'] == 'notvalid')) {
+    echo "<br><div class=\"zannouce\">" . $lang['421'] . "</div>";
+}
 
 echo "<br><h2>" . $lang['242'] . "</h2>";
 if ($totalforwarders > 0) {

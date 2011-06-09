@@ -44,6 +44,11 @@ if ($_POST['inAction'] == 'NewMailbox') {
         header("location: " . GetNormalModuleURL($returnurl) . "&r=nopassword");
         exit;
     }
+    # Lets check that the user specified an valid email...
+    if (!IsValidEmail($fulladdress)) {
+        header("location: " . GetNormalModuleURL($returnurl) . "&r=notvalid");
+        exit;
+    }
     # Firstly we check that a mailbox, forwarder or dist list doesnt already exist in ZPanel....
     $sql = "SELECT * FROM z_mailboxes WHERE mb_address_vc='" . $fulladdress . "' AND mb_deleted_ts IS NULL";
     $totalmailboxes = DataExchange("t", $z_db_name, $sql);
@@ -204,6 +209,11 @@ if ($_POST['inAction'] == 'NewAlias') {
         header("location: " . GetNormalModuleURL($returnurl) . "&r=nodest");
         exit;
     }
+    # Lets check that the user specified an valid email...
+    if (!IsValidEmail($fulladdress)) {
+        header("location: " . GetNormalModuleURL($returnurl) . "&r=notvalid");
+        exit;
+    }
     # Firstly we check that a mailbox, forwarder or dist list doesnt already exist in ZPanel....
     $sql = "SELECT * FROM z_mailboxes WHERE mb_address_vc='" . $fulladdress . "' AND mb_deleted_ts IS NULL";
     $totalmailboxes = DataExchange("t", $z_db_name, $sql);
@@ -283,6 +293,16 @@ if ($_POST['inAction'] == 'NewForwarder') {
         header("location: " . GetNormalModuleURL($returnurl) . "&r=nodest");
         exit;
     }
+    # Lets check that the user specified an valid email...
+    if (!IsValidEmail($fulladdress)) {
+        header("location: " . GetNormalModuleURL($returnurl) . "&r=notvalid");
+        exit;
+    }
+    # Lets check that the user specified an valid email...
+    if (!IsValidEmail($destination)) {
+        header("location: " . GetNormalModuleURL($returnurl) . "&r=notvalid");
+        exit;
+    }
     # Firstly we check that a mailbox, forwarder or dist list doesnt already exist in ZPanel....
     $sql = "SELECT * FROM z_mailboxes WHERE mb_address_vc='" . $fulladdress . "' AND mb_deleted_ts IS NULL";
     $totalmailboxes = DataExchange("t", $z_db_name, $sql);
@@ -334,6 +354,11 @@ if ($_POST['inAction'] == 'NewDistList') {
     # Lets check that the user specified an email domain...
     if ($_POST['inDomain'] == "" || $_POST['inAddress'] == "") {
         header("location: " . GetNormalModuleURL($returnurl) . "&r=nodomain");
+        exit;
+    }
+    # Lets check that the user specified an valid email...
+    if (!IsValidEmail($fulladdress)) {
+        header("location: " . GetNormalModuleURL($returnurl) . "&r=notvalid");
         exit;
     }
     # Firstly we check that a mailbox, forwarder or dist list doesnt already exist in ZPanel....
@@ -608,6 +633,11 @@ if ($_POST['inAction'] == 'edit_distlists') {
     $totaldistlists = DataExchange("t", $z_db_name, $sql);
 
     if (isset($_POST['inSubmit'])) {
+		# Lets check that the user specified an valid email...
+    	if (!IsValidEmail(Cleaner('i', $_POST['inDistListAddress']))) {
+        	header("location: " . GetNormalModuleURL($returnurl) . "&r=notvalid");
+        	exit;
+    	}
         # User wants to create a new dist list address, so lets add the list list user...
         $list_id = $rowdistlists['dl_id_pk'];
         # Lets just quickly grab the ZPanel dist list foreign key

@@ -56,6 +56,9 @@ if ((isset($_GET['r'])) && ($_GET['r'] == 'exists')) {
 if ((isset($_GET['r'])) && ($_GET['r'] == 'notexists')) {
     echo "<br><div class=\"zannouce\">" . $lang['190'] . "</div>";
 }
+if ((isset($_GET['r'])) && ($_GET['r'] == 'notvalid')) {
+    echo "<br><div class=\"zannouce\">" . $lang['421'] . "</div>";
+}
 echo "<br><h2>" . $lang['187'] . "</h2>";
 if ($totalforwarders > 0) {
     ?><form id="frmMailboxes" name="frmMailboxes" method="post" action="runner.php?load=obj_mail">

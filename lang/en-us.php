@@ -410,4 +410,5 @@ $lang['417'] = "Size the file has to be before throttling begins.";
 $lang['418'] = "Download speed of files, if enabled.";
 $lang['419'] = "Bandwidth Throttle module enables you to limit the amount of bandwidth your virtual hosts can use.";
 $lang['420'] = "You do not have permission to access this module.";
+$lang['421'] = "The email you entered is not a valid email address.";
 ?>

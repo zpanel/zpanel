@@ -588,6 +588,16 @@ function IsValidDomainName($a) {
     return true;
 }
 
+function IsValidEmail($email) {
+    # DESCRIPTION: Check for invalid characters in email creation.
+    # FUNCTION RELEASE: 6.1.0
+    # FUNCTION AUTHOR: RusTus
+    if (!preg_match('/^[a-z0-9]+([_\\.-][a-z0-9]+)*@([a-z0-9]+([\.-][a-z0-9]+)*)+\\.[a-z]{2,}$/i', $email) ) {
+    	return false;
+    }
+    return true;
+}
+
 function ShowServerOSName() {
     # DESCRIPTION: Gets and returns the Operating system OS name.
     # FUNCTION RELEASE: 10.0.0
