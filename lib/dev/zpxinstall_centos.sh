@@ -47,7 +47,15 @@ echo "Are you sure you want to continue? Press ENTER to continue or CTRL+C to qu
 read continue
 
 # Install the required development enviroment packages...
+echo "#########################################################"
+echo "# Updating package repository cache.                    #"
+echo "# --------------------------------------------          #"
+echo "########################################################"
 sudo yum update
+echo "#########################################################"
+echo "# Installing Apache, PHP, MySQL etc.                    #"
+echo "# --------------------------------------------          #"
+echo "########################################################"
 sudo yum install httpd php53 php53-devel php53-gd php53-mbstring php53-imap php53-mysql php53-xml php53-xmlrpc curl curl-devel perl-libwww-perl libxml2 libxml2-devel mysql-server subversion zip webalizer gcc gcc-c++ httpd-devel.i386 system-switch-mail
 #sudo chkconfig --levels 235 sendmail off; /etc/init.d/sendmail stop; yum -y remove sendmail
 sudo yum remove vsftpd
@@ -81,7 +89,7 @@ echo "########################################################"
 
 # We have to install Mod_BW Manually as CentOS does not have a package for it..
 cd /tmp/
-wget http://ivn.cl/files/source/mod_bw-0.92.tgz
+wget http://forums.zpanelcp.com/pkgs/source/mod_bw-0.92.tgz
 tar -zxvf mod_bw-0.92.tgz
 apxs -i -a -c mod_bw.c
 rm -fr mod_bw*
@@ -94,7 +102,7 @@ echo "########################################################"
 
 # We have to install suhosin Manually as CentOS does not have a package for it...
 cd /tmp/
-wget http://download.suhosin.org/suhosin-0.9.29.tgz
+wget http://forums.zpanelcp.com/pkgs/source/suhosin-0.9.29.tgz
 tar xvfz suhosin-0.9.29.tgz
 cd suhosin-0.9.29
 phpize
@@ -188,23 +196,50 @@ sudo chmod 644 /etc/cron.d/zdaemon
 service crond restart
 
 clear
-echo "#########################################################"
-echo "# Import ZPanel SQL Databases                           #"
-echo "# --------------------------------------------          #"
-echo "########################################################"
-echo ""
-echo "Please now enter the root MySQL password so I can import the databases and create the ZPanel DB config file.."
-read password
+echo "###############################################################"
+echo "# Import ZPanel SQL Databases                                 #"
+echo "# -------------------------------------------------           #"
+echo "# Please now enter the root MySQL password so I can           #"
+echo "# import the databases and create the ZPanel DB config file.. #"
+echo "##############################################################"
+read defaultpassword
 echo "> Importing zpanel_core database.."
-mysql -uroot -p${password} < /etc/zpanel/lib/dev/zpanel_core.sql
+mysql -uroot -p${defaultpassword} < /etc/zpanel/lib/dev/zpanel_core.sql
 echo "  ^ Done"
 echo "> Importing zpanel_postfix database.."
-mysql -uroot -p${password} < /etc/zpanel/lib/dev/zpanel_postfix.sql
+mysql -uroot -p${defaultpassword} < /etc/zpanel/lib/dev/zpanel_postfix.sql
 echo "  ^ Done!"
 echo "> Importing the zpanel_roundcube database"
-mysql -uroot -p${password} < /etc/zpanel/lib/dev/zpanel_roundcube.sql
+mysql -uroot -p${defaultpassword} < /etc/zpanel/lib/dev/zpanel_roundcube.sql
 echo "  ^ Done!"
 echo "> Writing the zpanel database configuration file.."
+
+# Setup the default virtual host for the control panel and get ZPanel Setup Information
+clear
+echo "#########################################################"
+echo "# ZPanel Configuration Details                          #"
+echo "# --------------------------------------------          #"
+echo "########################################################"
+echo "ADMIN ACCOUNT DETAILS:"
+echo "Your first name:"
+read firstname
+echo ""
+echo "Your last name:"
+read lastname
+echo ""
+echo "Your email address:"
+read email
+echo ""
+echo "ENTER THE SUBDOMAIN THAT WILL HOST ZPANEL EG. 'CONTROL.YOURDOMAIN.COM'"
+read domain
+
+# Update the zpanel_core database with gathered information
+zpassword=$(</dev/urandom tr -dc A-Za-z0-9 | head -c8)
+password=$(</dev/urandom tr -dc A-Za-z0-9 | head -c10)
+echo "SET PASSWORD FOR root@localhost=PASSWORD('${password}');" |mysql -uroot -p${defaultpassword} -hlocalhost
+echo "update z_accounts set ac_pass_vc=MD5('${zpassword}') where ac_user_vc='zadmin';" |mysql -uroot -p${password} -hlocalhost zpanel_core
+echo "update z_personal set ap_fullname_vc='${firstname} ${lastname}' where ap_id_pk='2';" |mysql -uroot -p${password} -hlocalhost zpanel_core
+echo "update z_personal set ap_email_vc='${email}' where ap_id_pk='2';" |mysql -uroot -p${password} -hlocalhost zpanel_core
 
 echo "<?php" > /etc/zpanel/conf/zcnf.php
 echo "" >> /etc/zpanel/conf/zcnf.php
@@ -243,15 +278,7 @@ echo "  ^ Done"
 # Set phpmyadmin freindly permissions on the config.inc.php (so phpMyAdmin doesn't complain)
 chmod 644 /etc/zpanel/apps/phpmyadmin/config.inc.php
 
-# Setup the default virtual host for the control panel
-clear
-echo "#########################################################"
-echo "# Configure Control Panel VHost                         #"
-echo "# --------------------------------------------          #"
-echo "########################################################"
-echo ""
-echo "ENTER THE DOMAIN/SUBDOMAIN THAT WILL HOST ZPANEL EG. 'CONTROL.YOURDOMAIN.COM'"
-read domain
+#write Apache VHOST file
 echo "# ZPanel Apache Master VHOST file." > /etc/zpanel/conf/httpd-vhosts.conf
 echo "# Written by Bobby Allen, 15/05/2011" >> /etc/zpanel/conf/httpd-vhosts.conf
 echo "#" >> /etc/zpanel/conf/httpd-vhosts.conf
@@ -261,7 +288,7 @@ echo "NameVirtualHost *:80" >> /etc/zpanel/conf/httpd-vhosts.conf
 echo " " >> /etc/zpanel/conf/httpd-vhosts.conf
 echo "	# Configuration for ZPanel control panel." >> /etc/zpanel/conf/httpd-vhosts.conf
 echo "	<VirtualHost *:80>" >> /etc/zpanel/conf/httpd-vhosts.conf
-echo "	ServerAdmin zadmin@${domain}" >> /etc/zpanel/conf/httpd-vhosts.conf
+echo "	ServerAdmin ${email}" >> /etc/zpanel/conf/httpd-vhosts.conf
 echo "    	DocumentRoot \"/etc/zpanel\"" >> /etc/zpanel/conf/httpd-vhosts.conf
 echo "    	ServerName ${domain}" >> /etc/zpanel/conf/httpd-vhosts.conf
 echo "    	ServerAlias *.${domain}" >> /etc/zpanel/conf/httpd-vhosts.conf
@@ -291,12 +318,12 @@ chmod -R 777 /var/zpanel/vmail
 chmod -R g+s /var/zpanel/vmail
 sudo groupadd -g 5000 vmail
 sudo useradd -m -g vmail -u 5000 -d /var/zpanel/vmail -s /bin/bash vmail
-chown vmail.vmail /var/zpanel/vmail
+sudo chown -R vmail.vmail /var/zpanel/vmail
 
 # Postfix Master.cf
 echo "# Dovecot LDA" >> ${postfix_master_config}
 echo "dovecot   unix  -       n       n       -       -       pipe" >> ${postfix_master_config}
-echo "  flags=DRhu user=vmail:vmail argv=/usr/libexec/dovecot/deliver -d ${recipient}" >> ${postfix_master_config}
+echo "  flags=DRhu user=vmail:mail argv=/usr/libexec/dovecot/deliver -d ${recipient}" >> ${postfix_master_config}
 
 # Postfix Main.cf
 echo "#########################################################################" > ${postfix_main_config}
@@ -626,5 +653,5 @@ echo "           ZPANEL ADMIN ACCOUNT LOGIN"
 echo "           =============================================="
 echo "           CONTROL PANEL URL: http://${domain}"
 echo "           USERNAME: zadmin"
-echo "           PASSWORD: zadmin"
+echo "           PASSWORD: ${zpassword}"
 echo ""

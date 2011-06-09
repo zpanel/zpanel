@@ -114,31 +114,54 @@ sudo chmod -R g+s /var/zpanel
 sudo chmod -R 777 /etc/zpanel/
 sudo chmod -R 777 /var/zpanel/
 
-
-
 # Restart ProFTPd and Apache...
 sudo /etc/init.d/proftpd restart
 sudo /etc/init.d/apache2 restart
 
-echo "#########################################################"
-echo "# Import ZPanel SQL Databases                           #"
-echo "# --------------------------------------------          #"
-echo "########################################################"
-
-echo "Please now enter the root MySQL password so I can import the databases and create the ZPanel DB config file.."
-read password
-
+echo "###############################################################"
+echo "# Import ZPanel SQL Databases                                 #"
+echo "# -------------------------------------------------           #"
+echo "# Please now enter the root MySQL password so I can           #"
+echo "# import the databases and create the ZPanel DB config file.. #"
+echo "##############################################################"
+read defaultpassword
 echo "> Importing zpanel_core database.."
-mysql -uroot -p${password} < /etc/zpanel/lib/dev/zpanel_core.sql
+mysql -uroot -p${defaultpassword} < /etc/zpanel/lib/dev/zpanel_core.sql
 echo "  ^ Done"
 echo "> Importing zpanel_postfix database.."
-mysql -uroot -p${password} < /etc/zpanel/lib/dev/zpanel_postfix.sql
+mysql -uroot -p${defaultpassword} < /etc/zpanel/lib/dev/zpanel_postfix.sql
 echo "  ^ Done!"
 echo "> Importing the zpanel_roundcube database"
-mysql -uroot -p${password} < /etc/zpanel/lib/dev/zpanel_roundcube.sql
+mysql -uroot -p${defaultpassword} < /etc/zpanel/lib/dev/zpanel_roundcube.sql
 echo "  ^ Done!"
 echo "> Writing the zpanel database configuration file.."
 
+# Setup the default virtual host for the control panel and get ZPanel Setup Information
+clear
+echo "#########################################################"
+echo "# ZPanel Configuration Details                          #"
+echo "# --------------------------------------------          #"
+echo "########################################################"
+echo "ADMIN ACCOUNT DETAILS:"
+echo "Your first name:"
+read firstname
+echo ""
+echo "Your last name:"
+read lastname
+echo ""
+echo "Your email address:"
+read email
+echo ""
+echo "ENTER THE SUBDOMAIN THAT WILL HOST ZPANEL EG. 'CONTROL.YOURDOMAIN.COM'"
+read domain
+
+# Update the zpanel_core database with gathered information
+zpassword=$(</dev/urandom tr -dc A-Za-z0-9 | head -c8)
+password=$(</dev/urandom tr -dc A-Za-z0-9 | head -c10)
+echo "SET PASSWORD FOR root@localhost=PASSWORD('${password}');" |mysql -uroot -p${defaultpassword} -hlocalhost
+echo "update z_accounts set ac_pass_vc=MD5('${zpassword}') where ac_user_vc='zadmin';" |mysql -uroot -p${password} -hlocalhost zpanel_core
+echo "update z_personal set ap_fullname_vc='${firstname} ${lastname}' where ap_id_pk='2';" |mysql -uroot -p${password} -hlocalhost zpanel_core
+echo "update z_personal set ap_email_vc='${email}' where ap_id_pk='2';" |mysql -uroot -p${password} -hlocalhost zpanel_core
 
 # Add a cron task to run deamon every 30 mins...
 touch /etc/cron.d/zdaemon
@@ -184,16 +207,6 @@ echo "  ^ Done"
 # Set phpmyadmin freindly permissions on the config.inc.php (so phpMyAdmin doesn't complain)
 chmod 644 /etc/zpanel/apps/phpmyadmin/config.inc.php
 
-# Setup the default virtual host for the control panel
-clear
-echo "#########################################################"
-echo "# Configure Control Panel VHost                         #"
-echo "# --------------------------------------------          #"
-echo "########################################################"
-echo ""
-echo "Please enter the domain/subdomain that will host ZPanel eg. 'zpanel.yourdomain.com'"
-echo " "
-read domain
 echo "# ZPanel Apache Master VHOST file." > /etc/zpanel/conf/httpd-vhosts.conf
 echo "# Written by Bobby Allen, 15/05/2011" >> /etc/zpanel/conf/httpd-vhosts.conf
 echo "#" >> /etc/zpanel/conf/httpd-vhosts.conf
@@ -232,10 +245,9 @@ echo "127.0.0.1			${domain}">> /etc/hosts
 mkdir -p /var/zpanel/vmail
 chmod -R 777 /var/zpanel/vmail
 chmod -R g+s /var/zpanel/vmail
-
 sudo groupadd -g 5000 vmail
 sudo useradd -m -g vmail -u 5000 -d /var/zpanel/vmail -s /bin/bash vmail
-chown vmail.vmail /var/zpanel/vmail
+sudo chown -R vmail.vmail /var/zpanel/vmail
 
 # Postfix Master.cf
 echo "# Dovecot LDA" >> ${postfix_master_config}
@@ -572,7 +584,7 @@ echo "           ZPANEL ADMIN ACCOUNT LOGIN"
 echo "           =============================================="
 echo "           CONTROL PANEL URL: http://${domain}"
 echo "           USERNAME: zadmin"
-echo "           PASSWORD: zadmin"
+echo "           PASSWORD: ${zpassword}"
 echo ""
 
 #http://library.linode.com/email/postfix/dovecot-mysql-ubuntu-10.04-lucid
