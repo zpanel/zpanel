@@ -463,60 +463,36 @@ echo "local_transport                = virtual" >> ${postfix_main_config}
 echo "dovecot_destination_recipient_limit = 1" >> ${postfix_main_config}
 
 # Dovecot Conf
-echo "#ssl_cert_file  = /etc/pki/dovecot/certs/myserver.example.com.crt" > ${dovecot_config}
-echo "#ssl_key_file   = /etc/pki/dovecot/private/myserver.example.com.key" >> ${dovecot_config}
-echo "#ssl_ca_file    = /etc/pki/dovecot/certs/ca-bundle.crt" >> ${dovecot_config}
-echo "mail_location   = maildir:/var/zpanel/vmail/%d/%u" >> ${dovecot_config}
-echo "first_valid_uid = 5000" >> ${dovecot_config}
-echo "last_valid_uid  = 5000" >> ${dovecot_config}
-echo "auth_mechanisms = plain DIGEST-MD5 CRAM-MD5" >> ${dovecot_config}
-echo "maildir_copy_with_hardlinks = yes" >> ${dovecot_config}
-echo "# Required on x86_64 kernels" >> ${dovecot_config}
-echo "login_process_size = 64" >> ${dovecot_config}
-echo "protocol imap {" >> ${dovecot_config}
-echo "  mail_plugins = quota imap_quota" >> ${dovecot_config}
-echo "  imap_client_workarounds = outlook-idle delay-newmail" >> ${dovecot_config}
-echo "}" >> ${dovecot_config}
+echo "protocols = imap imaps pop3 pop3s" > ${dovecot_config}
+echo "log_timestamp = '%Y-%m-%d %H:%M:%S'" >> ${dovecot_config}
+echo "mail_location = maildir:/var/zpanel/vmail/%d/%n" >> ${dovecot_config}
 echo "protocol pop3 {" >> ${dovecot_config}
-echo "  mail_plugins = quota" >> ${dovecot_config}
-echo "  pop3_client_workarounds = outlook-no-nuls oe-ns-eoh" >> ${dovecot_config}
+echo "    pop3_uidl_format = %08Xu%08Xv" >> ${dovecot_config}
 echo "}" >> ${dovecot_config}
-echo "protocol lda {" >> ${dovecot_config}
-echo "  postmaster_address = postmaster@example.com" >> ${dovecot_config}
-echo "  mail_plugins = quota" >> ${dovecot_config}
-echo "  log_path = /var/log/dovecot-deliver.log" >> ${dovecot_config}
-echo "  info_log_path = /var/log/dovecot-deliver.log" >> ${dovecot_config}
-echo "}" >> ${dovecot_config}
+echo "" >> ${dovecot_config}
 echo "auth default {" >> ${dovecot_config}
-echo "  mechanisms = plain login" >> ${dovecot_config}
-echo "  passdb sql {" >> ${dovecot_config}
-echo "    args = ${dovecot_sql_config}" >> ${dovecot_config}
-echo "  }" >> ${dovecot_config}
-echo "  userdb sql {" >> ${dovecot_config}
-echo "    args = ${dovecot_sql_config}" >> ${dovecot_config}
-echo "  }" >> ${dovecot_config}
-echo "  userdb prefetch {" >> ${dovecot_config}
-echo "  }" >> ${dovecot_config}
-echo "  user = postfix" >> ${dovecot_config}
-echo "  socket listen {" >> ${dovecot_config}
-echo "    master {" >> ${dovecot_config}
-echo "      path  = /var/run/dovecot/auth-master" >> ${dovecot_config}
-echo "      mode  = 0660" >> ${dovecot_config}
-echo "      user  = postfix" >> ${dovecot_config}
-echo "      group = postfix" >> ${dovecot_config}
+echo "    mechanisms = plain login" >> ${dovecot_config}
+echo "    user = root" >> ${dovecot_config}
+echo "" >> ${dovecot_config}
+echo "    passdb sql {" >> ${dovecot_config}
+echo "        args = ${dovecot_sql_config}" >> ${dovecot_config}
 echo "    }" >> ${dovecot_config}
-echo "    client {" >> ${dovecot_config}
-echo "      path  = /var/spool/postfix/private/auth" >> ${dovecot_config}
-echo "      mode  = 0660" >> ${dovecot_config}
-echo "      user  = postfix" >> ${dovecot_config}
-echo "      group = postfix" >> ${dovecot_config}
+echo "" >> ${dovecot_config}
+echo "    userdb sql {" >> ${dovecot_config}
+echo "        args = ${dovecot_sql_config}" >> ${dovecot_config}
 echo "    }" >> ${dovecot_config}
-echo "  }" >> ${dovecot_config}
-echo "}" >> ${dovecot_config}
-echo "dict {" >> ${dovecot_config}
+echo "" >> ${dovecot_config}
+echo "    socket listen {" >> ${dovecot_config}
+echo "        client {" >> ${dovecot_config}
+echo "            path = /var/spool/postfix/private/auth" >> ${dovecot_config}
+echo "            mode = 0660" >> ${dovecot_config}
+echo "            user = postfix" >> ${dovecot_config}
+echo "            group = postfix" >> ${dovecot_config}
+echo "        }" >> ${dovecot_config}
+echo "    }" >> ${dovecot_config}
 echo "}" >> ${dovecot_config}
 echo "plugin {" >> ${dovecot_config}
-echo "  quota = maildir:storage=10240:messages=1000" >> ${dovecot_config}
+echo "  #quota = maildir:storage=10240:messages=1000" >> ${dovecot_config}
 echo "  #acl  = vfile:/etc/dovecot/acls" >> ${dovecot_config}
 echo "  trash = ${dovecot_trash_config}" >> ${dovecot_config}
 echo "}" >> ${dovecot_config}
@@ -527,7 +503,8 @@ chmod 777 ${dovecot_sql_config}
 echo "driver = mysql" > ${dovecot_sql_config}
 echo "connect = host=127.0.0.1 dbname=zpanel_postfix user=root password=${password}" >> ${dovecot_sql_config}
 echo "default_pass_scheme = PLAIN" >> ${dovecot_sql_config}
-echo "password_query = SELECT username as user, password, '/var/zpanel/vmail/%d/%n' as userdb_home, 'maildir:/var/zpanel/vmail/%d/%n' as userdb_mail, 5000 as userdb_uid, 5000 as userdb_gid FROM mailbox WHERE username = '%u' AND active = '1'" >> ${dovecot_sql_config}
+echo "password_query = SELECT password FROM mailbox WHERE username = '%u'" >> ${dovecot_sql_config}
+echo "user_query = SELECT maildir, 5000 AS uid, 5000 AS gid FROM mailbox WHERE username = '%u' AND active = '1'" >> ${dovecot_sql_config}
 
 touch ${dovecot_trash_config}
 chmod 777 ${dovecot_trash_config}

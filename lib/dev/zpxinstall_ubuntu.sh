@@ -65,7 +65,7 @@ echo "# When asked please select 'INTERNET SITE'              #"
 echo "########################################################"
 echo "Press ENTER to continue with the installation..."
 read continue
-sudo apt-get install postfix postfix-mysql dovecot-imapd dovecot-pop3d dovecot-common
+sudo apt-get install postfix postfix-mysql dovecot-imapd dovecot-pop3d dovecot-common libsasl2-modules-sql libsasl2-modules
 
 # configure Suhosin
 echo "suhosin.session.encrypt = Off" >> /etc/php5/conf.d/suhosin.ini
@@ -411,47 +411,24 @@ echo "dovecot_destination_recipient_limit = 1" >> ${postfix_main_config}
 # Dovecot Conf
 echo "protocols = imap imaps pop3 pop3s" > ${dovecot_config}
 echo "log_timestamp = '%Y-%m-%d %H:%M:%S'" >> ${dovecot_config}
-echo "mail_location = maildir:/var/zpanel/vmail/%d/%n/Maildir" >> ${dovecot_config}
-echo "" >> ${dovecot_config}
-echo "ssl_cert_file = /etc/ssl/certs/dovecot.pem" >> ${dovecot_config}
-echo "ssl_key_file = /etc/ssl/private/dovecot.pem" >> ${dovecot_config}
-echo "" >> ${dovecot_config}
-echo "namespace private {" >> ${dovecot_config}
-echo "    separator = ." >> ${dovecot_config}
-echo "    prefix = INBOX." >> ${dovecot_config}
-echo "    inbox = yes" >> ${dovecot_config}
-echo "}" >> ${dovecot_config}
-echo "" >> ${dovecot_config}
-echo "protocol lda {" >> ${dovecot_config}
-echo "    log_path = /var/zpanel/vmail/dovecot-deliver.log" >> ${dovecot_config}
-echo "    auth_socket_path = /var/run/dovecot/auth-master" >> ${dovecot_config}
-echo "    postmaster_address = postmaster@${domain}" >> ${dovecot_config}
-echo "    mail_plugins = sieve" >> ${dovecot_config}
-echo "    global_script_path = /var/zpanel/vmail/globalsieverc" >> ${dovecot_config}
-echo "}" >> ${dovecot_config}
-echo "" >> ${dovecot_config}
+echo "mail_location = maildir:/var/zpanel/vmail/%d/%n" >> ${dovecot_config}
 echo "protocol pop3 {" >> ${dovecot_config}
 echo "    pop3_uidl_format = %08Xu%08Xv" >> ${dovecot_config}
 echo "}" >> ${dovecot_config}
 echo "" >> ${dovecot_config}
 echo "auth default {" >> ${dovecot_config}
+echo "    mechanisms = plain login" >> ${dovecot_config}
 echo "    user = root" >> ${dovecot_config}
 echo "" >> ${dovecot_config}
 echo "    passdb sql {" >> ${dovecot_config}
 echo "        args = ${dovecot_sql_config}" >> ${dovecot_config}
 echo "    }" >> ${dovecot_config}
 echo "" >> ${dovecot_config}
-echo "    userdb static {" >> ${dovecot_config}
-echo "        args = uid=5000 gid=5000 home=/var/zpanel/vmail/%d/%n allow_all_users=yes" >> ${dovecot_config}
+echo "    userdb sql {" >> ${dovecot_config}
+echo "        args = ${dovecot_sql_config}" >> ${dovecot_config}
 echo "    }" >> ${dovecot_config}
 echo "" >> ${dovecot_config}
 echo "    socket listen {" >> ${dovecot_config}
-echo "        master {" >> ${dovecot_config}
-echo "            path = /var/run/dovecot/auth-master" >> ${dovecot_config}
-echo "            mode = 0600" >> ${dovecot_config}
-echo "            user = vmail" >> ${dovecot_config}
-echo "        }" >> ${dovecot_config}
-echo "" >> ${dovecot_config}
 echo "        client {" >> ${dovecot_config}
 echo "            path = /var/spool/postfix/private/auth" >> ${dovecot_config}
 echo "            mode = 0660" >> ${dovecot_config}
@@ -461,14 +438,10 @@ echo "        }" >> ${dovecot_config}
 echo "    }" >> ${dovecot_config}
 echo "}" >> ${dovecot_config}
 echo "plugin {" >> ${dovecot_config}
-echo "  quota = maildir:storage=10240:messages=1000" >> ${dovecot_config}
+echo "  #quota = maildir:storage=10240:messages=1000" >> ${dovecot_config}
 echo "  #acl  = vfile:/etc/dovecot/acls" >> ${dovecot_config}
 echo "  trash = ${dovecot_trash_config}" >> ${dovecot_config}
 echo "}" >> ${dovecot_config}
-
-# Allow vmail user to access configuration
-#chgrp vmail ${dovecot_config}
-#chmod g+r ${dovecot_config}
 
 # Postfix and dovecot sql mappings
 touch ${dovecot_sql_config}
@@ -476,7 +449,8 @@ chmod 777 ${dovecot_sql_config}
 echo "driver = mysql" > ${dovecot_sql_config}
 echo "connect = host=127.0.0.1 dbname=zpanel_postfix user=root password=${password}" >> ${dovecot_sql_config}
 echo "default_pass_scheme = PLAIN" >> ${dovecot_sql_config}
-echo "password_query = SELECT username as user, password, '/var/zpanel/vmail/%d/%n' as userdb_home, 'maildir:/var/zpanel/vmail/%d/%n' as userdb_mail, 5000 as userdb_uid, 5000 as userdb_gid FROM mailbox WHERE username = '%u' AND active = '1'" >> ${dovecot_sql_config}
+echo "password_query = SELECT password FROM mailbox WHERE username = '%u'" >> ${dovecot_sql_config}
+echo "user_query = SELECT maildir, 5000 AS uid, 5000 AS gid FROM mailbox WHERE username = '%u' AND active = '1'" >> ${dovecot_sql_config}
 
 touch ${dovecot_trash_config}
 chmod 777 ${dovecot_trash_config}
