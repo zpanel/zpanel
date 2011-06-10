@@ -113,8 +113,11 @@ if ($_POST['inAction'] == 'new') {
 		<Option Name=\"DirSubdirs\">1</Option>";
 
         if ($existsftp < 1) {
-            zapi_ftpaccount_add(GetSystemOption('filezilla_root'), $username, $password, GetSystemOption('zpanel_version'), ChangeSafeSlashesToWin(GetSystemOption('hosted_dir') . $username), $permissionset);
-
+            if (ShowServerPlatform() == 'Windows') {
+                zapi_ftpaccount_add(GetSystemOption('filezilla_root'), $username, $password, GetSystemOption('zpanel_version'), ChangeSafeSlashesToWin(GetSystemOption('hosted_dir') . $username), $permissionset);
+            } else {
+                zapi_ftpaccount_add(GetSystemOption('filezilla_root'), $username, $password, GetSystemOption('zpanel_version'), ChangeWinSlashesToNIX(GetSystemOption('hosted_dir') . $username), $permissionset);
+            }
             # If all has gone well we need to now create the domain in the database...
             $sql = "INSERT INTO z_ftpaccounts (ft_acc_fk,
 											ft_user_vc,
@@ -399,7 +402,15 @@ if ($_POST['inAction'] == 'delete') {
             if ($totalRows_ftpaccounts > 0) {
                 do {
                     # Go through and delete all FTP accounts that the user has setup.
-                    zapi_ftpaccount_remove(GetSystemOption('filezilla_root'), $rowftpaccounts['ft_user_vc ']);
+                    $api_resault = zapi_ftpaccount_remove(GetSystemOption('filezilla_root'), $rowftpaccounts['ft_user_vc']);
+                    if ($api_resault == false) {
+                        # The FTP account was not deleted for some reason.
+                        TriggerLog($useraccount['ac_id_pk'], $b = "FTP user (" . $rowftpaccounts['ft_user_vc'] . ") could not be fully deleted.");
+                    } else {
+                        TriggerLog($useraccount['ac_id_pk'], $b = "FTP user (" . $rowftpaccounts['ft_user_vc'] . ") has been deleted.");
+                        #$reboot = system($filezilla_reload);
+                    }
+
                     $total_deleted = ($total_deleted + 1);
                 } while ($rowftpaccounts = mysql_fetch_assoc($listftpaccounts));
                 # Then obviously we should go and reload FileZilla's configuration.... Due to removal of FTP accounts!
