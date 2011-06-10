@@ -85,7 +85,6 @@ echo "# ZPanel modification to enable automated Apache restarts." >> /etc/sudoer
 echo "www-data ALL=NOPASSWD: /etc/zpanel/bin/zsudo" >> /etc/sudoers
 
 # Make the default directories
-sudo mkdir /etc/zpanel/
 sudo mkdir /var/zpanel/
 sudo mkdir /var/zpanel/logs/
 sudo mkdir /var/zpanel/backups/
@@ -102,9 +101,6 @@ echo "# --------------------------------------------          #"
 echo "# You may now be asked to accept the SSL certificate    #"
 echo "# for our SVN repository...                             #"
 echo "########################################################"
-
-# Download the contents of the SVN repository..
-sudo svn co https://svn.zpanelcp.com/svnroot/zpanelcp/trunk /etc/zpanel/
 
 # Set the security on these directories
 sudo chown -R www-data /etc/zpanel
@@ -586,5 +582,3 @@ echo "           CONTROL PANEL URL: http://${domain}"
 echo "           USERNAME: zadmin"
 echo "           PASSWORD: ${zpassword}"
 echo ""
-
-#http://library.linode.com/email/postfix/dovecot-mysql-ubuntu-10.04-lucid

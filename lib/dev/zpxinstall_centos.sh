@@ -133,7 +133,6 @@ echo "# ZPanel modification to enable automated Apache restarts." >> /etc/sudoer
 echo "apache ALL=NOPASSWD: /etc/zpanel/bin/zsudo" >> /etc/sudoers
 
 # Make the default directories
-sudo mkdir /etc/zpanel/
 sudo mkdir /var/zpanel/
 sudo mkdir /var/zpanel/logs/
 sudo mkdir /var/zpanel/backups/
@@ -148,10 +147,6 @@ echo "#########################################################"
 echo "# Getting latest ZPanel SVN Revision                    #"
 echo "# --------------------------------------------          #"
 echo "########################################################"
-
-# Download the contents of the SVN repository..
-echo "You may now be asked to accept the SSL certificate for our SVN repository..."
-sudo svn co https://zpanelcp.svn.sourceforge.net/svnroot/zpanelcp/trunk /etc/zpanel/
 
 # Set the security on these directories
 sudo chown -R apache /etc/zpanel
