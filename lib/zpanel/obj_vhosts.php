@@ -42,7 +42,7 @@ $totalactivedomains = DataExchange("t", $z_db_name, $sql);
 #get shared domain list
 $SharedDomains = array();
 $a = GetSystemOption('shared_domains');
-$a = explode(';', $a);
+$a = explode(',', $a);
 foreach ($a as $b) {
     $SharedDomains[] = $b;
 }
