@@ -135,9 +135,19 @@ if (isset($_GET['edit'])) {
                 <td><font color="<?php echo $statuscolor; ?>"><?php echo $status; ?></font></td>
             </tr>
             <tr>
-                <th><input type="radio" name="inStatus" id="inStatus" value="1" <?php if ($rowhmaccount['active'] == '1')
-        echo "checked"; ?>/><?php echo $lang['250']; ?><br><input type="radio" name="inStatus" id="inStatus" value="0" <?php if ($rowhmaccount['active'] == '0')
-                           echo "checked"; ?>/><?php echo $lang['252']; ?></th>
+                <th><input type="radio" name="inStatus" id="inStatus" value="1" <?php
+				if (ShowServerPlatform() == "Windows") { ###################################### WINDOWS
+					if ($rowhmaccount['accountactive'] == '1') echo "checked"; 
+				} else { ################### POSIX
+					if ($rowhmaccount['active'] == '1') echo "checked"; 
+				} ###################################### ENDIF ?>/>
+				<?php echo $lang['250']; ?><br>
+				<input type="radio" name="inStatus" id="inStatus" value="0" <?php
+				if (ShowServerPlatform() == "Windows") { ###################################### WINDOWS
+					if ($rowhmaccount['accountactive'] == '0') echo "checked"; 
+				} else { ################### POSIX
+					if ($rowhmaccount['active'] == '0') echo "checked"; 
+				} ###################################### ENDIF ?>/><?php echo $lang['252']; ?></th>
                 <td></td>
             </tr>
             <tr>

@@ -792,7 +792,7 @@ if ($edited == 1) {
             if (IsWindows() == true) {
                 system("C:\\ZPanel\\bin\\apache\\bin\\httpd.exe -k restart -n \"Apache\"");
             } else {
-                system("/etc/zpanel/bin/zsudo service apache2 reload");
+				system("/etc/zpanel/bin/zsudo service " . GetSystemOption('lsn_apache') . " reload");
             }
             TriggerLog(1, $b = "> Apache web server has been rebooted due to a bandwidth or disk limit reached or reset.");
             echo "restarted Successfully \r\n";
