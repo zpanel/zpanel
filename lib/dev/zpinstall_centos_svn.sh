@@ -160,6 +160,7 @@ sudo chown -R apache /var/zpanel
 sudo chmod -R g+s /var/zpanel
 sudo chmod -R 777 /etc/zpanel/
 sudo chmod -R 777 /var/zpanel/
+sudo chmod 4777 /etc/zpanel/bin/zsudo
 
 echo "#########################################################"
 echo "# Installing Postfix / Dovecot                          #"
