@@ -143,11 +143,6 @@ sudo mkdir /var/zpanel/logs/domains/
 sudo mkdir /var/zpanel/logs/domains/zadmin/
 sudo mkdir /var/zpanel/logs/proftpd/
 
-echo "#########################################################"
-echo "# Getting latest ZPanel SVN Revision                    #"
-echo "# --------------------------------------------          #"
-echo "########################################################"
-
 # Set the security on these directories
 sudo chown -R apache /etc/zpanel
 sudo chmod -R g+s /etc/zpanel
