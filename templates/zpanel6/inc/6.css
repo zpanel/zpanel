@@ -187,6 +187,7 @@ text-align:left;
 	position: fixed;
 	top: 0px;
 	left: 0px;
+	z-index:9999;
 }
 #header_overlay {
 	background: url(../images/bg_top_overlay.png) no-repeat center top;
