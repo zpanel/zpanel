@@ -28,7 +28,14 @@
 # Add a cronjob
 function zapi_cronjob_add($file, $cronid, $timing, $phpexepath, $scriptpath) {
     $new_file = implode('', file($file));
-    $new_file .= "# CRON ID:" . $cronid . "\n" . $timing . " " . $phpexepath . " " . trim($scriptpath) . "\n# END CRON ID:" . $cronid . "\n";
+	if (ShowServerPlatform() == "Windows") {
+    	$new_file .= "
+# CRON ID:" . $cronid . "
+" . $timing . " " . $phpexepath . " " . trim($scriptpath) . "
+# END CRON ID:" . $cronid . "";
+	}else{
+		$new_file .= "# CRON ID:" . $cronid . "\n" . $timing . " " . $phpexepath . " " . trim($scriptpath) . "\n# END CRON ID:" . $cronid . "\n";
+	}
     $editfile = fopen($file, "w");
     if (!fwrite($editfile, preg_replace('/^[ \t]*[\r\n]+/m', '', $new_file))) {
         return false;
@@ -42,11 +49,14 @@ function zapi_cronjob_add($file, $cronid, $timing, $phpexepath, $scriptpath) {
 
 function zapi_cronjob_remove($file, $cronid) {
     $content = implode('', file($file));
-    $content1 = explode("# CRON ID:" . $cronid, $content);
+    $content1 = explode("# CRON ID:" . $cronid . "", $content);
     $content2 = explode("# END CRON ID:" . $cronid . "", $content1[1], 2);
     $content = $content1[0] . $content2[1];
+	if ($content != ""){
+		preg_replace('/^[ \t]*[\r\n]+/m', '', $content);
+	}
     $editfile = fopen($file, "w");
-    if (!fwrite($editfile, preg_replace('/^[ \t]*[\r\n]+/m', '', $content))) {
+    if (!fwrite($editfile, $content)) {
         return false;
     } else {
         fclose($editfile);
