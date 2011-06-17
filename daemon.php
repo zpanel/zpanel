@@ -582,7 +582,7 @@ while ($rowvhosts = mysql_fetch_array($resultvhosts)) {
     $userback = $rowvhosts['ac_user_vc'];
     $dirback = $rowvhosts['vh_directory_vc'];
     $replacementtest = "DocumentRoot \"$hosteddir" . "$userback" . "$dirback\"";
-    $replacement = "DocumentRoot \"$hosteddir" . "$userback" . "$dirback\"" . "\r\n" . "php_admin_value open_basedir \"$hosteddir" . "$userback" . "$dirback/;C:/Zpanel/temp/\"";
+    $replacement = "DocumentRoot \"$hosteddir" . "$userback" . "$dirback\"" . "\r\n" . "php_admin_value open_basedir \"$hosteddir" . "$userback" . "$dirback;C:/Zpanel/temp\"";
     preg_match("#DocumentRoot \"$hosteddir" . "$userback" . "$dirback\"#", $vhostrecord, $matches);
     $test = $matches[0];
     if ($test == $replacementtest) {
@@ -622,7 +622,7 @@ while ($rowvhosts = mysql_fetch_array($resultvhosts)) {
     $userback = $rowvhosts['ac_user_vc'];
     $dirback = $rowvhosts['vh_directory_vc'];
     $replacementtest = "DocumentRoot \"$hosteddir" . "$userback" . "$dirback\"";
-    $replacement = "DocumentRoot \"$hosteddir" . "$userback" . "$dirback\"" . "\r\n" . "php_admin_value open_basedir \"$hosteddir" . "$userback" . "$dirback/;C:/Zpanel/temp/\"";
+    $replacement = "DocumentRoot \"$hosteddir" . "$userback" . "$dirback\"" . "\r\n" . "php_admin_value open_basedir \"$hosteddir" . "$userback" . "$dirback;C:/Zpanel/temp\"";
     preg_match("#DocumentRoot \"$hosteddir" . "$userback" . "$dirback\"#", $vhostrecord, $matches);
     $test = $matches[0];
     if ($test == $replacementtest) {
@@ -695,7 +695,7 @@ if ($bandwidthdisabled == 1) {
         $userback = $rowvhosts['ac_user_vc'];
         $dirback = $rowvhosts['vh_directory_vc'];
         $replacementtest = "DocumentRoot \"$hosteddir" . "$userback" . "$dirback\"";
-        $replacement = "DocumentRoot \"$hosteddir" . "$userback" . "$dirback\"" . "\r\n" . "php_admin_value open_basedir \"$hosteddir" . "$userback" . "$dirback/;C:/Zpanel/temp/\"";
+        $replacement = "DocumentRoot \"$hosteddir" . "$userback" . "$dirback\"" . "\r\n" . "php_admin_value open_basedir \"$hosteddir" . "$userback" . "$dirback;C:/Zpanel/temp\"";
         preg_match("#DocumentRoot \"$hosteddir" . "$userback" . "$dirback\"#", $vhostrecord, $matches);
         $test = $matches[0];
         if ($test == $replacementtest) {

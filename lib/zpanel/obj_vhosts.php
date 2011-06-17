@@ -161,7 +161,7 @@ ErrorDocument 510 /_errorpages/510.html";
         }
     }
 
-    $flags = "php_admin_value open_basedir \"" . GetSystemOption('hosted_dir') . $useraccount['ac_user_vc'] . $homedirectoy_to_use . "/;C:/ZPanel/temp/\"";
+    $flags = "php_admin_value open_basedir \"" . GetSystemOption('hosted_dir') . $useraccount['ac_user_vc'] . $homedirectoy_to_use . ";C:/ZPanel/temp\"";
 
     $alogs = "ErrorLog \"" . GetSystemOption('logfile_dir') . $useraccount['ac_user_vc'] . "/" . $domain . "-error.log\"
 CustomLog \"" . GetSystemOption('logfile_dir') . $useraccount['ac_user_vc'] . "/" . $domain . "-access.log\" common
@@ -365,7 +365,7 @@ ErrorDocument 510 /_errorpages/510.html";
     }
 
 
-    $flags = "php_admin_value open_basedir \"" . GetSystemOption('hosted_dir') . $useraccount['ac_user_vc'] . $homedirectoy_to_use . "/;C:/ZPanel/temp/\"";
+    $flags = "php_admin_value open_basedir \"" . GetSystemOption('hosted_dir') . $useraccount['ac_user_vc'] . $homedirectoy_to_use . ";C:/ZPanel/temp\"";
 
     $alogs = "ErrorLog \"" . GetSystemOption('logfile_dir') . $useraccount['ac_user_vc'] . "/" . $domain . "-error.log\"
 CustomLog \"" . GetSystemOption('logfile_dir') . $useraccount['ac_user_vc'] . "/" . $domain . "-access.log\" common
