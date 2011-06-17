@@ -89,7 +89,6 @@ function BuildApp($a, $useraccount, $packageinfo, $quotainfo, $permissionset, $p
     }
 
     $templatecontent = TemplateReplace($fileContents, $bodycontent, $template_path, $useraccount, $packageinfo, $quotainfo, $permissionset, $personalinfo);
-    return eval('?>' . $templatecontent . '<?');
+    return eval('?>' . $templatecontent . '');
 }
-
 ?>
