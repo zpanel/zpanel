@@ -186,6 +186,24 @@ echo "*/30 * * * * root /usr/bin/php -q /etc/zpanel/daemon.php" >> /etc/cron.d/z
 sudo chmod 644 /etc/cron.d/zdaemon
 service crond restart
 
+# Create ZPanel Cron file and set permissions
+touch /var/spool/cron/apache
+sudo chmod 777 /var/spool/cron
+sudo chown apache /var/spool/cron/apache
+sudo chmod 644 /var/spool/cron/apache
+
+echo "#################################################################################" > /var/spool/cron/apache
+echo "# CRONTAB FOR ZPANEL CRON MANAGER MODULE                                        #" >> /var/spool/cron/apache
+echo "# Module Developed by Bobby Allen, 17/12/2009                                   #" >> /var/spool/cron/apache
+echo "#                                                                               #" >> /var/spool/cron/apache
+echo "#################################################################################" >> /var/spool/cron/apache
+echo "# WE DO NOT RECOMMEND YOU MODIFY THIS FILE DIRECTLY, PLEASE USE ZPANEL INSTEAD! #" >> /var/spool/cron/apache
+echo "#################################################################################" >> /var/spool/cron/apache
+echo "# DO NOT MANUALLY REMOVE ANY OF THE CRON ENTRIES FROM THIS FILE, USE ZPANEL     #" >> /var/spool/cron/apache
+echo "# INSTEAD! THE ABOVE ENTRIES ARE USED FOR ZPANEL TASKS, DO NOT REMOVE THEM!     #" >> /var/spool/cron/apache
+echo "#################################################################################" >> /var/spool/cron/apache
+
+
 clear
 echo "###############################################################"
 echo "# Import ZPanel SQL Databases                                 #"
@@ -214,10 +232,8 @@ echo "########################################################"
 echo "ADMIN ACCOUNT DETAILS:"
 echo "Your first name:"
 read firstname
-echo ""
 echo "Your last name:"
 read lastname
-echo ""
 echo "Your email address:"
 read email
 echo ""
@@ -225,8 +241,8 @@ echo "ENTER THE SUBDOMAIN THAT WILL HOST ZPANEL EG. 'CONTROL.YOURDOMAIN.COM'"
 read domain
 
 # Update the zpanel_core database with gathered information
-zpassword=$(</dev/urandom tr -dc A-Za-z0-9 | head -c8)
-password=$(</dev/urandom tr -dc A-Za-z0-9 | head -c10)
+zpassword=$(</dev/urandom tr -dc A-Za-z0-9 | head -c6)
+password=$(</dev/urandom tr -dc A-Za-z0-9 | head -c8)
 echo "SET PASSWORD FOR root@localhost=PASSWORD('${password}');" |mysql -uroot -p${defaultpassword} -hlocalhost
 echo "update z_accounts set ac_pass_vc=MD5('${zpassword}') where ac_user_vc='zadmin';" |mysql -uroot -p${password} -hlocalhost zpanel_core
 echo "update z_personal set ap_fullname_vc='${firstname} ${lastname}' where ap_id_pk='2';" |mysql -uroot -p${password} -hlocalhost zpanel_core
@@ -620,6 +636,7 @@ sudo chmod 777 /etc/postfix/mysql_*.cf
 # Set the correct service names in the database for this distrubion...
 /etc/zpanel/lib/dev/setso --set -q lsn_apache httpd
 /etc/zpanel/lib/dev/setso --set -q lsn_proftpd proftpd
+/etc/zpanel/lib/dev/setso --set -q cron_file /var/spool/cron/apache
 
 service postfix start
 service dovecot start
