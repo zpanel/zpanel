@@ -150,6 +150,7 @@ sudo chown -R apache /var/zpanel
 sudo chmod -R g+s /var/zpanel
 sudo chmod -R 777 /etc/zpanel/
 sudo chmod -R 777 /var/zpanel/
+sudo chown root /etc/zpanel/bin/zsudo
 sudo chmod 4777 /etc/zpanel/bin/zsudo
 
 echo "#########################################################"
@@ -179,9 +180,9 @@ echo "########################################################"
 # Now we run the MySQL secure script (to enable the user to set a MySQL root password etc.)
 /usr/bin/mysql_secure_installation
 
-# Add a cron task to run deamon every 30 mins...
+# Add a cron task to run deamon every 60 mins...
 touch /etc/cron.d/zdaemon
-echo "*/30 * * * * root /usr/bin/php -q /etc/zpanel/daemon.php" >> /etc/cron.d/zdaemon
+echo "0 * * * * root /usr/bin/php -q /etc/zpanel/daemon.php >> /dev/null 2>&1" >> /etc/cron.d/zdaemon
 # Permissions must be 644 or cron will not run!
 sudo chmod 644 /etc/cron.d/zdaemon
 service crond restart

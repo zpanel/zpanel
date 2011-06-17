@@ -113,6 +113,7 @@ sudo chown -R www-data /var/zpanel
 sudo chmod -R g+s /var/zpanel
 sudo chmod -R 777 /etc/zpanel/
 sudo chmod -R 777 /var/zpanel/
+sudo chown root /etc/zpanel/bin/zsudo
 sudo chmod 4777 /etc/zpanel/bin/zsudo
 
 # Restart ProFTPd and Apache...
@@ -162,9 +163,9 @@ echo "update z_accounts set ac_pass_vc=MD5('${zpassword}') where ac_user_vc='zad
 echo "update z_personal set ap_fullname_vc='${firstname} ${lastname}' where ap_id_pk='2';" |mysql -uroot -p${password} -hlocalhost zpanel_core
 echo "update z_personal set ap_email_vc='${email}' where ap_id_pk='2';" |mysql -uroot -p${password} -hlocalhost zpanel_core
 
-# Add a cron task to run deamon every 30 mins...
+# Add a cron task to run deamon every 60 mins...
 touch /etc/cron.d/zdaemon
-echo "*/30 * * * * root /usr/bin/php -q /etc/zpanel/daemon.php" >> /etc/cron.d/zdaemon
+echo "0 * * * * root /usr/bin/php -q /etc/zpanel/daemon.php >> /dev/null 2>&1" >> /etc/cron.d/zdaemon
 # Permissions must be 644 or cron will not run!
 sudo chmod 644 /etc/cron.d/zdaemon
 service cron restart
