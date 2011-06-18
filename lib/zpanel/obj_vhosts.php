@@ -159,8 +159,13 @@ ErrorDocument 510 /_errorpages/510.html";
         }
     }
 
+if(ShowServerPlatform() <> "Windows"){
 $flags = "php_admin_value open_basedir \"" . GetSystemOption('hosted_dir') . $useraccount['ac_user_vc'] . $homedirectoy_to_use . ":" . GetSystemOption('temp_dir') . "\"
 php_admin_value upload_tmp_dir \"" .GetSystemOption('temp_dir'). "\"";
+} else {
+$flags = "php_admin_value open_basedir \"" . GetSystemOption('hosted_dir') . $useraccount['ac_user_vc'] . $homedirectoy_to_use . ";" . GetSystemOption('temp_dir') . "\"
+php_admin_value upload_tmp_dir \"" .GetSystemOption('temp_dir'). "\"";
+}
 
     $alogs = "ErrorLog \"" . GetSystemOption('logfile_dir') . $useraccount['ac_user_vc'] . "/" . $domain . "-error.log\"
 CustomLog \"" . GetSystemOption('logfile_dir') . $useraccount['ac_user_vc'] . "/" . $domain . "-access.log\" common
