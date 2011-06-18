@@ -39,3 +39,7 @@ echo "##########################################################################
 
 # Remove the old version_checker module...
 rm -rf /etc/zpanel/modules/admin/version_checker/
+
+# Add new temp directory in correct place..
+mkdir /var/zpanel/temp
+chmod -R 777 /var/zpanel/temp

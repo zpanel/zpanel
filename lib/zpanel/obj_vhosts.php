@@ -47,8 +47,6 @@ foreach ($a as $b) {
     $SharedDomains[] = $b;
 }
 
-
-
 if ($_POST['inAction'] == 'NewDomain') {
     # Declare the domain name as a string...
     $domain = $_POST['inDomain'];
@@ -161,7 +159,8 @@ ErrorDocument 510 /_errorpages/510.html";
         }
     }
 
-    $flags = "php_admin_value open_basedir \"" . GetSystemOption('hosted_dir') . $useraccount['ac_user_vc'] . $homedirectoy_to_use . ";" . GetSystemOption('temp_dir') . "\"";
+$flags = "php_admin_value open_basedir \"" . GetSystemOption('hosted_dir') . $useraccount['ac_user_vc'] . $homedirectoy_to_use . ":" . GetSystemOption('temp_dir') . "\"
+php_admin_value upload_tmp_dir \"" .GetSystemOption('temp_dir'). "\"";
 
     $alogs = "ErrorLog \"" . GetSystemOption('logfile_dir') . $useraccount['ac_user_vc'] . "/" . $domain . "-error.log\"
 CustomLog \"" . GetSystemOption('logfile_dir') . $useraccount['ac_user_vc'] . "/" . $domain . "-access.log\" common
@@ -363,9 +362,9 @@ ErrorDocument 510 /_errorpages/510.html";
             @chmod(GetSystemOption('hosted_dir') . $useraccount['ac_user_vc'] . $homedirectoy_to_use . "/_errorpages" . "/510.html", 0777);
         }
     }
+$flags = "php_admin_value open_basedir \"" . GetSystemOption('hosted_dir') . $useraccount['ac_user_vc'] . $homedirectoy_to_use . ":" . GetSystemOption('temp_dir') . "\"
+php_admin_value upload_tmp_dir \"" .GetSystemOption('temp_dir'). "\"";
 
-
-    $flags = "php_admin_value open_basedir \"" . GetSystemOption('hosted_dir') . $useraccount['ac_user_vc'] . $homedirectoy_to_use . ";" . GetSystemOption('temp_dir') . "\"";
 
     $alogs = "ErrorLog \"" . GetSystemOption('logfile_dir') . $useraccount['ac_user_vc'] . "/" . $domain . "-error.log\"
 CustomLog \"" . GetSystemOption('logfile_dir') . $useraccount['ac_user_vc'] . "/" . $domain . "-access.log\" common

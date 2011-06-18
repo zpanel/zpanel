@@ -138,6 +138,7 @@ sudo mkdir /var/zpanel/logs/
 sudo mkdir /var/zpanel/backups/
 sudo mkdir /var/zpanel/updates/
 sudo mkdir /var/zpanel/hostdata/
+sudo mkdir /var/zpanel/temp/
 sudo mkdir /var/zpanel/hostdata/zadmin/
 sudo mkdir /var/zpanel/logs/domains/
 sudo mkdir /var/zpanel/logs/domains/zadmin/
