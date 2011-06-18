@@ -56,7 +56,7 @@ echo "#########################################################"
 echo "# Installing Apache, PHP, MySQL etc.                    #"
 echo "# --------------------------------------------          #"
 echo "########################################################"
-sudo yum install httpd php53 php53-devel php53-gd php53-mbstring php53-imap php53-mysql php53-xml php53-xmlrpc curl curl-devel perl-libwww-perl libxml2 libxml2-devel mysql-server subversion zip webalizer gcc gcc-c++ httpd-devel.i386 system-switch-mail
+sudo yum install httpd php53 php53-devel php53-gd php53-mbstring php53-imap php53-mysql php53-xml php53-xmlrpc curl curl-devel perl-libwww-perl libxml2 libxml2-devel mysql-server zip webalizer gcc gcc-c++ httpd-devel.i386 system-switch-mail
 #sudo chkconfig --levels 235 sendmail off; /etc/init.d/sendmail stop; yum -y remove sendmail
 sudo yum remove vsftpd
 

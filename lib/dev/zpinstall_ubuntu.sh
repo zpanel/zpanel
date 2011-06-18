@@ -57,7 +57,7 @@ echo "#########################################################"
 echo "# Installing Apache, PHP, MySQL etc.                    #"
 echo "# --------------------------------------------          #"
 echo "########################################################"
-sudo apt-get install apache2 libapache2-mod-php5 libapache2-mod-bw php5 php5-cli php5-common php5-mysql php5-curl php5-gd php-pear php5-imagick php5-imap php5-mcrypt php5-xmlrpc php5-xsl php5-suhosin mysql-server mysql-client subversion zip proftpd webalizer
+sudo apt-get install apache2 libapache2-mod-php5 libapache2-mod-bw php5 php5-cli php5-common php5-mysql php5-curl php5-gd php-pear php5-imagick php5-imap php5-mcrypt php5-xmlrpc php5-xsl php5-suhosin mysql-server mysql-client zip proftpd webalizer
 echo "#########################################################"
 echo "# Installing Postfix and Dovecot                        #"
 echo "# --------------------------------------------          #"

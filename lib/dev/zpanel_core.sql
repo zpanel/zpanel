@@ -518,7 +518,7 @@ CREATE TABLE IF NOT EXISTS `z_settings` (
 --
 
 INSERT INTO `z_settings` (`st_id_pk`, `st_name_vc`, `st_value_tx`, `st_desc_tx`, `st_label_vc`, `st_inputtype_vc`, `st_checkvalue_tx`, `st_editable_in`) VALUES
-(9, 'zpanel_version', '6.1.0', 'The version of ZPanel currently running on the server.', NULL, 'text', NULL, 0),
+(9, 'zpanel_version', '6.1.1', 'The version of ZPanel currently running on the server.', NULL, 'text', NULL, 0),
 (10, 'zpanel_root', '/etc/zpanel/', 'The root directory of ZPanel. (With a trailing slash)', NULL, 'text', NULL, 0),
 (11, 'zpanel_template', 'zpanel6', 'The folder name of the ZPanel template to use.', '200', 'text', NULL, 0),
 (12, 'zpanel_lang', 'en-us', 'The language folder to use.', '367', 'text', NULL, 0),
@@ -547,7 +547,7 @@ INSERT INTO `z_settings` (`st_id_pk`, `st_name_vc`, `st_value_tx`, `st_desc_tx`,
 (36, 'filezilla_root', '/etc/zpanel/conf/ftp/', 'The installation directory of where FileZilla server is installed in. (with a trailing slash ''/'')', NULL, 'text', NULL, 0),
 (37, 'webalizer_exe', 'webalizer', 'The full path to the webalizer executable.', NULL, 'text', NULL, 0),
 (38, 'current_month', '201103', 'The current month number (YYYYMM)', NULL, 'text', NULL, 0),
-(39, 'temp_dir', '/etc/zpanel/temp/', 'The path to the ZPanel temporary directory (with trailing slash)', '389', 'text', NULL, 1),
+(39, 'temp_dir', '/etc/zpanel/temp', 'The path to the ZPanel temporary directory (with trailing slash)', '389', 'text', NULL, 1),
 (40, '7z_exe', 'zip', 'The path and filename of the 7z compression tool.', NULL, 'text', NULL, 0),
 (41, 'mysqldump_exe', 'mysqldump', NULL, NULL, 'text', NULL, 0),
 (42, 'login_url', 'http://localhost/zpanel/login.php', 'Caches the last know login URL, Speeds up control panel access times.', NULL, 'text', NULL, 0),
