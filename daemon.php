@@ -408,7 +408,7 @@ if ($totalRows_domains > 0) {
 if (IsWindows() == true) {
     system("C:\\ZPanel\\bin\\apache\\bin\\httpd.exe -k restart -n \"Apache\"");
 } else {
-    system("/etc/zpanel/bin/zsudo service " . GetSystemOption('lsn_apache') . " reload"); # Need to create a system option so that the command can be customised for different distros etc.
+    system("/etc/zpanel/bin/zsudo service " . GetSystemOption('lsn_apache') . " restart"); # Need to create a system option so that the command can be customised for different distros etc.
 }
 TriggerLog(1, $b = "> Apache web server has been rebooted.");
 
@@ -792,7 +792,7 @@ if ($edited == 1) {
             if (IsWindows() == true) {
                 system("C:\\ZPanel\\bin\\apache\\bin\\httpd.exe -k restart -n \"Apache\"");
             } else {
-				system("/etc/zpanel/bin/zsudo service " . GetSystemOption('lsn_apache') . " reload");
+				system("/etc/zpanel/bin/zsudo service " . GetSystemOption('lsn_apache') . " restart");
             }
             TriggerLog(1, $b = "> Apache web server has been rebooted due to a bandwidth or disk limit reached or reset.");
             echo "restarted Successfully \r\n";
