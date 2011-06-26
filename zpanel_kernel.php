@@ -28,13 +28,12 @@
 # Add a cronjob
 function zapi_cronjob_add($file, $cronid, $timing, $phpexepath, $scriptpath) {
     $new_file = implode('', file($file));
-	if (ShowServerPlatform() == "Windows") {
     	$new_file .= "
 # CRON ID:" . $cronid . "
 " . $timing . " " . $phpexepath . " " . trim($scriptpath) . "
 # END CRON ID:" . $cronid . "";
-	}else{
-		$new_file .= "# CRON ID:" . $cronid . "\n" . $timing . " " . $phpexepath . " " . trim($scriptpath) . "\n# END CRON ID:" . $cronid . "\n";
+	if (ShowServerPlatform() != "Windows") {
+		$new_file = str_replace("\r", "", $new_file);
 	}
     $editfile = fopen($file, "w");
     if (!fwrite($editfile, preg_replace('/^[ \t]*[\r\n]+/m', '', $new_file))) {
@@ -121,12 +120,9 @@ function zapi_ftpaccount_add($filezilla_root, $username, $password, $zp_version,
         $ftp_password = crypt($password, '$1$' . $auto_salt . '$');
         $directorytouse = ChangeWinSlashesToNIX($directorytouse);
         $new_file = implode('', file($proftpd_config));
-        $new_file .= "
-# USER:" . $username . "
-" . $username . ":" . $ftp_password . ":1010:1010::" . $directorytouse . ":/bin/false
-# END USER:" . $username . "";
+        $new_file .= "# USER:" . $username . "\n" . $username . ":" . $ftp_password . ":1010:1010::" . $directorytouse . ":/bin/false\n# END USER:" . $username . "\n";
         $editfile = fopen($proftpd_config, "w");
-        if (!fwrite($editfile, $new_file)) {
+        if (!fwrite($editfile, preg_replace('/^[ \t]*[\r\n]+/m', '', $new_file))) {
             # Log to system, unable to write the file...
             TriggerLog(1, "Was unable to write to the ProFTPd configuration file (" . $proftpd_config . "), check that the file is not read-only and that the file path in the ZPanel settings is correct.");
             return false;
@@ -188,7 +184,7 @@ function zapi_ftpaccount_remove($filezilla_root, $username) {
         $content2 = explode("# END USER:" . $username . "", $content1[1], 2);
         $content = $content1[0] . $content2[1];
         $editfile = fopen($proftpd_config, "w");
-        if (!fwrite($editfile, $content)) {
+        if (!fwrite($editfile,  preg_replace('/^[ \t]*[\r\n]+/m', '', $content))) {
             return false;
         } else {
             return true;
@@ -331,6 +327,9 @@ $extra
 </virtualhost>
 # END DOMAIN: $domain";
     $editfile = fopen($apache_conf, "w");
+	if (ShowServerPlatform() != "Windows") {
+		$new_file = str_replace("\r", "", $new_file);
+	}
     fwrite($editfile, $new_file);
     fclose($editfile);
     return;
@@ -357,6 +356,9 @@ AddType application/x-httpd-php .php3
 </VirtualHost>
 # END DOMAIN: $domain";
     $editfile = fopen($apache_conf, "w");
+	if (ShowServerPlatform() != "Windows") {
+		$new_file = str_replace("\r", "", $new_file);
+	}
     fwrite($editfile, $new_file);
     fclose($editfile);
     return;
@@ -388,7 +390,10 @@ $extra
 </virtualhost>
 # END DOMAIN: $domain";
     $editfile = fopen($apache_conf, "w");
-    fwrite($editfile, $new_file);
+	if (ShowServerPlatform() != "Windows") {
+		$new_file = str_replace("\r", "", $new_file);
+	}
+	fwrite($editfile, $new_file);
     fclose($editfile);
     return;
 }
