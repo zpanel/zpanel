@@ -34,7 +34,7 @@ echo "# Package maintainer: Bobby Allen (ballen@zpanelcp.com) #"
 echo "# Last updated:       04/06/2011                        #"
 echo "# Website:            http://www.zpanelcp.com           #"
 echo "########################################################"
-echo ""
+[ $(whoami) == "root" ] && echo "" || echo "You must be root to install ZPanel!" && exit
 echo "Welcome to the online installer for ZPanel, this will download the required software and install ZPanel."
 echo ""
 echo "This install script is designed to be used on freshly installed servers or workstations"
@@ -51,14 +51,14 @@ echo "#########################################################"
 echo "# Updating package repository cache.                    #"
 echo "# --------------------------------------------          #"
 echo "########################################################"
-sudo yum update
+yum update
 echo "#########################################################"
 echo "# Installing Apache, PHP, MySQL etc.                    #"
 echo "# --------------------------------------------          #"
 echo "########################################################"
-sudo yum install httpd php53 php53-devel php53-gd php53-mbstring php53-imap php53-mysql php53-xml php53-xmlrpc curl curl-devel perl-libwww-perl libxml2 libxml2-devel mysql-server zip webalizer gcc gcc-c++ httpd-devel.i386 system-switch-mail
-#sudo chkconfig --levels 235 sendmail off; /etc/init.d/sendmail stop; yum -y remove sendmail
-sudo yum remove vsftpd
+yum install httpd php53 php53-devel php53-gd php53-mbstring php53-imap php53-mysql php53-xml php53-xmlrpc curl curl-devel perl-libwww-perl libxml2 libxml2-devel mysql-server zip webalizer gcc gcc-c++ httpd-devel.i386 system-switch-mail
+# chkconfig --levels 235 sendmail off; /etc/init.d/sendmail stop; yum -y remove sendmail
+ yum remove vsftpd
 
 echo "#########################################################"
 echo "# Installing ProFTPd                                    #"
@@ -128,31 +128,31 @@ echo "Include /etc/zpanel/conf/httpd.conf" >> ${apache_config}
 echo "# Include the ZPanel ProFTPd managed configuration file." > ${proftpd_config}
 echo "Include /etc/zpanel/conf/proftpd.conf" >> ${proftpd_config}
 
-# Add exception to Sudoers file to enable zsudo execution for restarting Apache etc.
-echo "# ZPanel modification to enable automated Apache restarts." >> /etc/sudoers
-echo "apache ALL=NOPASSWD: /etc/zpanel/bin/zsudo" >> /etc/sudoers
+# Add exception to ers file to enable z execution for restarting Apache etc.
+echo "# ZPanel modification to enable automated Apache restarts." >> /etc/ers
+echo "apache ALL=NOPASSWD: /etc/zpanel/bin/z" >> /etc/ers
 
 # Make the default directories
-sudo mkdir /var/zpanel/
-sudo mkdir /var/zpanel/logs/
-sudo mkdir /var/zpanel/backups/
-sudo mkdir /var/zpanel/updates/
-sudo mkdir /var/zpanel/hostdata/
-sudo mkdir /var/zpanel/temp/
-sudo mkdir /var/zpanel/hostdata/zadmin/
-sudo mkdir /var/zpanel/logs/domains/
-sudo mkdir /var/zpanel/logs/domains/zadmin/
-sudo mkdir /var/zpanel/logs/proftpd/
+ mkdir /var/zpanel/
+ mkdir /var/zpanel/logs/
+ mkdir /var/zpanel/backups/
+ mkdir /var/zpanel/updates/
+ mkdir /var/zpanel/hostdata/
+ mkdir /var/zpanel/temp/
+ mkdir /var/zpanel/hostdata/zadmin/
+ mkdir /var/zpanel/logs/domains/
+ mkdir /var/zpanel/logs/domains/zadmin/
+ mkdir /var/zpanel/logs/proftpd/
 
 # Set the security on these directories
-sudo chown -R apache /etc/zpanel
-sudo chmod -R g+s /etc/zpanel
-sudo chown -R apache /var/zpanel
-sudo chmod -R g+s /var/zpanel
-sudo chmod -R 777 /etc/zpanel/
-sudo chmod -R 777 /var/zpanel/
-sudo chown root /etc/zpanel/bin/zsudo
-sudo chmod 4777 /etc/zpanel/bin/zsudo
+ chown -R apache /etc/zpanel
+ chmod -R g+s /etc/zpanel
+ chown -R apache /var/zpanel
+ chmod -R g+s /var/zpanel
+ chmod -R 777 /etc/zpanel/
+ chmod -R 777 /var/zpanel/
+ chown root /etc/zpanel/bin/z
+ chmod 4777 /etc/zpanel/bin/z
 
 echo "#########################################################"
 echo "# Installing Postfix / Dovecot                          #"
@@ -161,14 +161,14 @@ echo "########################################################"
 
 # We need to get the version of PostFix that has MySQL enabled.
 yes | cp /etc/zpanel/lib/dev/pf_confs/CentOS-Base.repo /etc/yum.repos.d/
-sudo yum --enablerepo=centosplus install postfix dovecot
+ yum --enablerepo=centosplus install postfix dovecot
 
 # Add services to be started
-sudo chkconfig --levels 235 httpd on
-sudo chkconfig --levels 235 proftpd on
-sudo chkconfig --levels 235 mysqld on
-sudo chkconfig --levels 345 postfix on
-sudo chkconfig --levels 345 dovecot on
+ chkconfig --levels 235 httpd on
+ chkconfig --levels 235 proftpd on
+ chkconfig --levels 235 mysqld on
+ chkconfig --levels 345 postfix on
+ chkconfig --levels 345 dovecot on
 service httpd start
 service mysqld start
 service proftpd start
@@ -185,14 +185,14 @@ echo "########################################################"
 touch /etc/cron.d/zdaemon
 echo "0 * * * * root /usr/bin/php -q /etc/zpanel/daemon.php >> /dev/null 2>&1" >> /etc/cron.d/zdaemon
 # Permissions must be 644 or cron will not run!
-sudo chmod 644 /etc/cron.d/zdaemon
+ chmod 644 /etc/cron.d/zdaemon
 service crond restart
 
 # Create ZPanel Cron file and set permissions
 touch /var/spool/cron/apache
-sudo chmod 777 /var/spool/cron
-sudo chown apache /var/spool/cron/apache
-sudo chmod 644 /var/spool/cron/apache
+ chmod 777 /var/spool/cron
+ chown apache /var/spool/cron/apache
+ chmod 644 /var/spool/cron/apache
 
 echo "#################################################################################" > /var/spool/cron/apache
 echo "# CRONTAB FOR ZPANEL CRON MANAGER MODULE                                        #" >> /var/spool/cron/apache
@@ -325,9 +325,9 @@ echo "127.0.0.1			${domain}">> /etc/hosts
 mkdir -p /var/zpanel/vmail
 chmod -R 777 /var/zpanel/vmail
 chmod -R g+s /var/zpanel/vmail
-sudo groupadd -g 5000 vmail
-sudo useradd -m -g vmail -u 5000 -d /var/zpanel/vmail -s /bin/bash vmail
-sudo chown -R vmail.vmail /var/zpanel/vmail
+ groupadd -g 5000 vmail
+ useradd -m -g vmail -u 5000 -d /var/zpanel/vmail -s /bin/bash vmail
+ chown -R vmail.vmail /var/zpanel/vmail
 
 # Postfix Master.cf
 echo "# Dovecot LDA" >> ${postfix_master_config}
@@ -632,8 +632,8 @@ echo "\$rcmail_config['db_sequence_cache'] = 'cache_ids';" >> /etc/zpanel/apps/w
 echo "\$rcmail_config['db_sequence_messages'] = 'message_ids';" >> /etc/zpanel/apps/webmail/config/db.inc.php
 echo "?>" >> /etc/zpanel/apps/webmail/config/db.inc.php
 
-sudo chgrp postfix /etc/postfix/mysql_*.cf
-sudo chmod 777 /etc/postfix/mysql_*.cf
+ chgrp postfix /etc/postfix/mysql_*.cf
+ chmod 777 /etc/postfix/mysql_*.cf
 
 # Set the correct service names in the database for this distrubion...
 /etc/zpanel/lib/dev/setso --set -q lsn_apache httpd

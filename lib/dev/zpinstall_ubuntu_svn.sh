@@ -34,7 +34,7 @@ echo "# Package maintainer: Bobby Allen (ballen@zpanelcp.com) #"
 echo "# Last updated:       04/06/2011                        #"
 echo "# Website:            http://www.zpanelcp.com           #"
 echo "########################################################"
-echo ""
+[ $(whoami) == "root" ] && echo "" || echo "You must be root to install ZPanel!" && exit
 echo "Welcome to the online installer for ZPanel, this will download the required software and install ZPanel."
 echo ""
 echo "This install script is designed to be used on freshly installed servers or workstations"
@@ -52,12 +52,12 @@ echo "#########################################################"
 echo "# Updating package repository cache.                    #"
 echo "# --------------------------------------------          #"
 echo "########################################################"
-sudo apt-get update
+apt-get update
 echo "#########################################################"
 echo "# Installing Apache, PHP, MySQL etc.                    #"
 echo "# --------------------------------------------          #"
 echo "########################################################"
-sudo apt-get install apache2 libapache2-mod-php5 libapache2-mod-bw php5 php5-cli php5-common php5-mysql php5-curl php5-gd php-pear php5-imagick php5-imap php5-mcrypt php5-xmlrpc php5-xsl php5-suhosin mysql-server mysql-client subversion zip proftpd webalizer
+apt-get install apache2 libapache2-mod-php5 libapache2-mod-bw php5 php5-cli php5-common php5-mysql php5-curl php5-gd php-pear php5-imagick php5-imap php5-mcrypt php5-xmlrpc php5-xsl php5-suhosin mysql-server mysql-client subversion zip proftpd webalizer
 echo "#########################################################"
 echo "# Installing Postfix and Dovecot                        #"
 echo "# --------------------------------------------          #"
@@ -65,7 +65,7 @@ echo "# When asked please select 'INTERNET SITE'              #"
 echo "########################################################"
 echo "Press ENTER to continue with the installation..."
 read continue
-sudo apt-get install postfix postfix-mysql dovecot-imapd dovecot-pop3d dovecot-common libsasl2-modules-sql libsasl2-modules
+apt-get install postfix postfix-mysql dovecot-imapd dovecot-pop3d dovecot-common libsasl2-modules-sql libsasl2-modules
 
 # configure Suhosin
 echo "suhosin.session.encrypt = Off" >> /etc/php5/conf.d/suhosin.ini
@@ -80,22 +80,22 @@ echo "Include /etc/zpanel/conf/httpd.conf" >> ${apache_config}
 echo "# Include the ZPanel ProFTPd managed configuration file." > ${proftpd_config}
 echo "Include /etc/zpanel/conf/proftpd.conf" >> ${proftpd_config}
 
-# Add exception to Sudoers file to enable zsudo execution for restarting Apache etc.
+# Add exception to Sudoers file to enable zexecution for restarting Apache etc.
 echo "# ZPanel modification to enable automated Apache restarts." >> /etc/sudoers
 echo "www-data ALL=NOPASSWD: /etc/zpanel/bin/zsudo" >> /etc/sudoers
 
 # Make the default directories
-sudo mkdir /etc/zpanel/
-sudo mkdir /var/zpanel/
-sudo mkdir /var/zpanel/logs/
-sudo mkdir /var/zpanel/backups/
-sudo mkdir /var/zpanel/updates/
-sudo mkdir /var/zpanel/hostdata/
-sudo mkdir /var/zpanel/temp/
-sudo mkdir /var/zpanel/hostdata/zadmin/
-sudo mkdir /var/zpanel/logs/domains/
-sudo mkdir /var/zpanel/logs/domains/zadmin/
-sudo mkdir /var/zpanel/logs/proftpd/
+mkdir /etc/zpanel/
+mkdir /var/zpanel/
+mkdir /var/zpanel/logs/
+mkdir /var/zpanel/backups/
+mkdir /var/zpanel/updates/
+mkdir /var/zpanel/hostdata/
+mkdir /var/zpanel/temp/
+mkdir /var/zpanel/hostdata/zadmin/
+mkdir /var/zpanel/logs/domains/
+mkdir /var/zpanel/logs/domains/zadmin/
+mkdir /var/zpanel/logs/proftpd/
 
 echo "#########################################################"
 echo "# Getting latest ZPanel SVN Revision                    #"
@@ -105,21 +105,21 @@ echo "# for our SVN repository...                             #"
 echo "########################################################"
 
 # Download the contents of the SVN repository..
-sudo svn co https://svn.zpanelcp.com/svnroot/zpanelcp/trunk /etc/zpanel/
+svn co https://svn.zpanelcp.com/svnroot/zpanelcp/trunk /etc/zpanel/
 
 # Set the security on these directories
-sudo chown -R www-data /etc/zpanel
-sudo chmod -R g+s /etc/zpanel
-sudo chown -R www-data /var/zpanel
-sudo chmod -R g+s /var/zpanel
-sudo chmod -R 777 /etc/zpanel/
-sudo chmod -R 777 /var/zpanel/
-sudo chown root /etc/zpanel/bin/zsudo
-sudo chmod 4777 /etc/zpanel/bin/zsudo
+chown -R www-data /etc/zpanel
+chmod -R g+s /etc/zpanel
+chown -R www-data /var/zpanel
+chmod -R g+s /var/zpanel
+chmod -R 777 /etc/zpanel/
+chmod -R 777 /var/zpanel/
+chown root /etc/zpanel/bin/zsudo
+chmod 4777 /etc/zpanel/bin/zsudo
 
 # Restart ProFTPd and Apache...
-sudo /etc/init.d/proftpd restart
-sudo /etc/init.d/apache2 restart
+/etc/init.d/proftpd restart
+/etc/init.d/apache2 restart
 
 echo "###############################################################"
 echo "# Import ZPanel SQL Databases                                 #"
@@ -168,14 +168,14 @@ echo "update z_personal set ap_email_vc='${email}' where ap_id_pk='2';" |mysql -
 touch /etc/cron.d/zdaemon
 echo "0 * * * * root /usr/bin/php -q /etc/zpanel/daemon.php >> /dev/null 2>&1" >> /etc/cron.d/zdaemon
 # Permissions must be 644 or cron will not run!
-sudo chmod 644 /etc/cron.d/zdaemon
+chmod 644 /etc/cron.d/zdaemon
 service cron restart
 
 # Create ZPanel Cron file and set permissions
 touch /var/spool/cron/crontabs/www-data
-sudo chmod 777 /var/spool/cron/crontabs
-sudo chown www-data /var/spool/cron/crontabs/www-data
-sudo chmod 644 /var/spool/cron/crontabs/www-data
+chmod 777 /var/spool/cron/crontabs
+chown www-data /var/spool/cron/crontabs/www-data
+chmod 644 /var/spool/cron/crontabs/www-data
 
 echo "#################################################################################" > /var/spool/cron/crontabs/www-data
 echo "# CRONTAB FOR ZPANEL CRON MANAGER MODULE                                        #" >> /var/spool/cron/crontabs/www-data
@@ -264,9 +264,9 @@ echo "127.0.0.1			${domain}">> /etc/hosts
 mkdir -p /var/zpanel/vmail
 chmod -R 777 /var/zpanel/vmail
 chmod -R g+s /var/zpanel/vmail
-sudo groupadd -g 5000 vmail
-sudo useradd -m -g vmail -u 5000 -d /var/zpanel/vmail -s /bin/bash vmail
-sudo chown -R vmail.vmail /var/zpanel/vmail
+groupadd -g 5000 vmail
+useradd -m -g vmail -u 5000 -d /var/zpanel/vmail -s /bin/bash vmail
+chown -R vmail.vmail /var/zpanel/vmail
 
 # Postfix Master.cf
 echo "# Dovecot LDA" >> ${postfix_master_config}
@@ -573,8 +573,8 @@ echo "\$rcmail_config['db_sequence_cache'] = 'cache_ids';" >> /etc/zpanel/apps/w
 echo "\$rcmail_config['db_sequence_messages'] = 'message_ids';" >> /etc/zpanel/apps/webmail/config/db.inc.php
 echo "?>" >> /etc/zpanel/apps/webmail/config/db.inc.php
 
-sudo chgrp postfix /etc/postfix/mysql_*.cf
-sudo chmod 777 /etc/postfix/mysql_*.cf
+chgrp postfix /etc/postfix/mysql_*.cf
+chmod 777 /etc/postfix/mysql_*.cf
 
 # Set the correct service names in the database for this distrubion...
 /etc/zpanel/lib/dev/setso --set -q lsn_apache apache2
