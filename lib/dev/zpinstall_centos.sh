@@ -34,7 +34,7 @@ echo "# Package maintainer: Bobby Allen (ballen@zpanelcp.com) #"
 echo "# Last updated:       04/06/2011                        #"
 echo "# Website:            http://www.zpanelcp.com           #"
 echo "########################################################"
-[ $(whoami) == "root" ] && echo "" || echo "You must be root to install ZPanel!" && exit
+[ $(whoami) == "root" ] && echo "" || echo "You must be root to install ZPanel" && exit
 echo "Welcome to the online installer for ZPanel, this will download the required software and install ZPanel."
 echo ""
 echo "This install script is designed to be used on freshly installed servers or workstations"
