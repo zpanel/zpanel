@@ -41,6 +41,9 @@ if (isset($_POST['inSaveTemplate'])) {
     DataExchange("w", $z_db_name, "UPDATE z_settings SET st_value_tx='" . Cleaner('o', $_POST['inTemplate']) . "' WHERE st_name_vc = 'zpanel_template'");
     DataExchange("w", $z_db_name, "UPDATE z_settings SET st_value_tx='" . Cleaner('o', str_replace(".php", "", $_POST['inTranslation'])) . "' WHERE st_name_vc = 'zpanel_lang'");
 }
+if (isset($_POST['inSaveWelcome'])){
+    DataExchange("w", $z_db_name, "UPDATE z_settings SET st_value_tx='" . htmlentities($_POST['inWelcome']) . "' WHERE st_name_vc = 'zpanel_welcome'");
+}
 $returnurl = GetNormalModuleURL($returnurl) . "&r=ok";
 header("location: " . $returnurl . "");
 exit;

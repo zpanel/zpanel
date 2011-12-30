@@ -158,17 +158,18 @@ ErrorDocument 510 /_errorpages/510.html";
             @chmod(GetSystemOption('hosted_dir') . $useraccount['ac_user_vc'] . $homedirectoy_to_use . "/_errorpages" . "/510.html", 0777);
         }
     }
-
+    $restrict = GetSystemOption('hosted_dir') . $useraccount['ac_user_vc'] . $homedirectoy_to_use;
     if (ShowServerPlatform() <> "Windows") {
-        $flags = "php_admin_value open_basedir \"" . GetSystemOption('hosted_dir') . $useraccount['ac_user_vc'] . $homedirectoy_to_use . ":" . GetSystemOption('temp_dir') . "\"
+
+        $flags = "php_admin_value open_basedir \"" . $restrict . ":" . GetSystemOption('temp_dir') . "\"
 php_admin_value upload_tmp_dir \"" . GetSystemOption('temp_dir') . "\"";
     } else {
-        $flags = "php_admin_value open_basedir \"" . GetSystemOption('hosted_dir') . $useraccount['ac_user_vc'] . $homedirectoy_to_use . ";" . GetSystemOption('temp_dir') . "\"
+        $flags = "php_admin_value open_basedir \"" . $restrict . ";" . GetSystemOption('temp_dir') . "\"
 php_admin_value upload_tmp_dir \"" . GetSystemOption('temp_dir') . "\"";
     }
 
     $alogs = "ErrorLog \"" . GetSystemOption('logfile_dir') . $useraccount['ac_user_vc'] . "/" . $domain . "-error.log\"
-CustomLog \"" . GetSystemOption('logfile_dir') . $useraccount['ac_user_vc'] . "/" . $domain . "-access.log\" common
+CustomLog \"" . GetSystemOption('logfile_dir') . $useraccount['ac_user_vc'] . "/" . $domain . "-access.log\" combined
 CustomLog \"" . GetSystemOption('logfile_dir') . $useraccount['ac_user_vc'] . "/" . $domain . "-bandwidth.log\" common";
 
     if ($personalinfo['ap_email_vc'] != '') {
@@ -244,11 +245,13 @@ CustomLog \"" . GetSystemOption('logfile_dir') . $useraccount['ac_user_vc'] . "/
     $sql = "INSERT INTO z_vhosts (vh_acc_fk,
 									vh_name_vc,
 									vh_directory_vc,
+                                                                        vh_restrict_vc,
 									vh_type_in,
 									vh_created_ts) VALUES (
 									" . $acc_fk . ",
 									'" . Cleaner('i', $domain) . "',
 									'" . Cleaner('i', $homedirectoy_to_use) . "',
+                                                                        '" . Cleaner('i', $restrict) . "',
 									1,
 									" . time() . ")";
     DataExchange("w", $z_db_name, $sql);
@@ -367,16 +370,17 @@ ErrorDocument 510 /_errorpages/510.html";
             @chmod(GetSystemOption('hosted_dir') . $useraccount['ac_user_vc'] . $homedirectoy_to_use . "/_errorpages" . "/510.html", 0777);
         }
     }
+    $restrict = GetSystemOption('hosted_dir') . $useraccount['ac_user_vc'] . $homedirectoy_to_use;
     if (ShowServerPlatform() <> "Windows") {
-        $flags = "php_admin_value open_basedir \"" . GetSystemOption('hosted_dir') . $useraccount['ac_user_vc'] . $homedirectoy_to_use . ":" . GetSystemOption('temp_dir') . "\"
+        $flags = "php_admin_value open_basedir \"" . $restrict . ":" . GetSystemOption('temp_dir') . "\"
 php_admin_value upload_tmp_dir \"" . GetSystemOption('temp_dir') . "\"";
     } else {
-        $flags = "php_admin_value open_basedir \"" . GetSystemOption('hosted_dir') . $useraccount['ac_user_vc'] . $homedirectoy_to_use . ";" . GetSystemOption('temp_dir') . "\"
+        $flags = "php_admin_value open_basedir \"" . $restrict . ";" . GetSystemOption('temp_dir') . "\"
 php_admin_value upload_tmp_dir \"" . GetSystemOption('temp_dir') . "\"";
     }
 
     $alogs = "ErrorLog \"" . GetSystemOption('logfile_dir') . $useraccount['ac_user_vc'] . "/" . $domain . "-error.log\"
-CustomLog \"" . GetSystemOption('logfile_dir') . $useraccount['ac_user_vc'] . "/" . $domain . "-access.log\" common
+CustomLog \"" . GetSystemOption('logfile_dir') . $useraccount['ac_user_vc'] . "/" . $domain . "-access.log\" combined
 CustomLog \"" . GetSystemOption('logfile_dir') . $useraccount['ac_user_vc'] . "/" . $domain . "-bandwidth.log\" common";
 
     if ($personalinfo['ap_email_vc'] != '') {
@@ -392,11 +396,13 @@ CustomLog \"" . GetSystemOption('logfile_dir') . $useraccount['ac_user_vc'] . "/
     $sql = "INSERT INTO z_vhosts (vh_acc_fk,
 									vh_name_vc,
 									vh_directory_vc,
+                                                                        vh_restrict_vc,
 									vh_type_in,
 									vh_created_ts) VALUES (
 									" . $acc_fk . ",
 									'" . Cleaner('i', $domain) . "',
 									'" . Cleaner('i', $homedirectoy_to_use) . "',
+                                                                        '" . Cleaner('i', $restrict) . "',
 									2,
 									" . time() . ")";
     DataExchange("w", $z_db_name, $sql);

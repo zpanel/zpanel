@@ -31,9 +31,11 @@ set_time_limit(0);
 ini_set('memory_limit', '256M');
 
 # Disable error messages
-ini_set('error_reporting', E_ALL | E_STRICT);
-ini_set('display_errors', 'Off');
+ini_set('error_reporting', E_ALL);
+ini_set('display_errors', 1);
 ini_set('log_errors', 'Off');
+ini_set('date.timezone', 'Europe/London');
+include('conf/zcnf.php');
 
 # Check what OS is running, If Windows we need to set the DB include path different to that of POSIX based OSs.
 
@@ -108,6 +110,7 @@ function GetSystemOption($a=" ") {
     return $fretval;
 }
 
+$zpanel_path = GetSystemOption('zpanel_root');
 include($zpanel_path . "lang/" . GetSystemOption('zpanel_lang') . ".php");
 
 function TriggerLog($a=0, $b="No details.") {
@@ -118,7 +121,7 @@ function TriggerLog($a=0, $b="No details.") {
     $acc_key = $a;
     $log_details = $b;
     include $zpanel_db_conf;
-    $sql = "INSERT INTO z_logs (lg_acc_fk, lg_when_ts, lg_ipaddress_vc, lg_details_tx) VALUES (" . $acc_key . ", '" . time() . "', '" . $_SERVER['REMOTE_ADDR'] . "', '" . $log_details . "')";
+    $sql = "INSERT INTO z_logs (lg_acc_fk, lg_when_ts, lg_ipaddress_vc, lg_details_tx) VALUES (" . $acc_key . ", '" . time() . "', '" . $_SERVER['HTTP_X_FORWARDED_FOR'] . "', '" . $log_details . "')";
     DataExchange("w", $z_db_name, $sql);
     return;
 }
@@ -180,42 +183,44 @@ function GenerateBandwidth($f_logs, $f_username, $f_site) {
     $records = preg_split("/([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)/", $astring, -1, PREG_SPLIT_DELIM_CAPTURE);
     $sizerecs = sizeof($records);
     // Now split into records
+    $j = 0;
     $i = 1;
+    $arb = array();
     $each_rec = 0;
     $cur_month = date("/M/Y");
     while ($i < $sizerecs) {
         $ip = $records[$i];
-        $all = $records[$i + 1];
+        $all = @$records[$i + 1];
         // Parse other fields
         preg_match("/\[(.+)\]/", $all, $match);
-        $access_time = $match[1];
-        $all = str_replace($match[1], "", $all);
+        $access_time = @$match[1];
+        $all = @str_replace($match[1], "", $all);
         preg_match("/\"GET (.[^\"]+)/", $all, $match);
-        $http = $match[1];
+        $http = @$match[1];
         $link = explode(" ", $http);
-        $all = str_replace("\"GET $match[1]\"", "", $all);
+        $all = @str_replace("\"GET $match[1]\"", "", $all);
         preg_match("/([0-9]{3})/", $all, $match);
-        $success_code = $match[1];
-        $all = str_replace($match[1], "", $all);
+        $success_code = @$match[1];
+        $all = @str_replace($match[1], "", $all);
         preg_match("/\"(.[^\"]+)/", $all, $match);
-        $ref = $match[1];
-        $all = str_replace("\"$match[1]\"", "", $all);
+        $ref = @$match[1];
+        $all = @str_replace("\"$match[1]\"", "", $all);
         preg_match("/\"(.[^\"]+)/", $all, $match);
-        $browser = $match[1];
-        $all = str_replace("\"$match[1]\"", "", $all);
+        $browser = @$match[1];
+        $all = @str_replace("\"$match[1]\"", "", $all);
         preg_match("/([0-9]+\b)/", $all, $match);
-        $bytes = $match[1];
-        $all = str_replace($match[1], "", $all);
+        $bytes = @$match[1];
+        $all = @str_replace($match[1], "", $all);
         // The following code is to collect bandwidth usage per user and assign each usage to the user,
         // Successful match, now we need to check if the access date matches the current month.
         // If yes, we'll sum all the sizes from access pages only from the current month
         // and put in database... 
-        $arb[$j] = $arb[$j] + $bytes;
+        $arb[$j] = @$arb[$j] + $bytes;
         // Advance to next record
         $i = $i + 1;
         $each_rec++;
     }
-    return $arb[$j];
+    return @$arb[$j];
 }
 
 function SureRemoveDir($dir, $DeleteMe) {
@@ -408,7 +413,7 @@ if ($totalRows_domains > 0) {
 if (IsWindows() == true) {
     system("C:\\ZPanel\\bin\\apache\\bin\\httpd.exe -k restart -n \"Apache\"");
 } else {
-    system("/etc/zpanel/bin/zsudo service " . GetSystemOption('lsn_apache') . " restart"); # Need to create a system option so that the command can be customised for different distros etc.
+    system("/etc/zpanel/bin/zsudo service " . GetSystemOption('lsn_apache') . " graceful"); # Need to create a system option so that the command can be customised for different distros etc.
 }
 TriggerLog(1, $b = "> Apache web server has been rebooted.");
 
@@ -524,204 +529,147 @@ DataExchange("w", $z_db_name, $sql);
 TriggerLog(1, $b = "> All active domains have been marked as (Live).");
 
 #####################################################################################################################################
-# Checks if users have exceeded bandwidth and if so 'flags the account as bandwidth'                                                #
+# Usage Limiting Section for bandwidth and diskspace                                                                                #
 #####################################################################################################################################
+    # DESCRIPTION: Activates all domains inside their quotas and limits all those that aren't
+    # FUNCTION RELEASE: 5.1.2
+    # FUNCTION AUTHOR: Kevin Andrews kandrews@zpanelcp.com
+    # FULL RE-WRITE FOR ZPANEL 6.1.2 11-10-11
 
-$restartapache = "Yes";
-$vhostpath = GetSystemOption('apache_vhost');
-$edited = 0;
-$hosteddir = GetSystemOption('hosted_dir');
-$staticdir = GetSystemOption('zpanel_root');
-//get the vhost.conf file into a string variable
-$vhostfile = file_get_contents($vhostpath) or die("Can't Open vhost.conf for usage limiting");
-//explode by new line into an array
-$vhostarray = explode("\n", $vhoststring);
-//this is the diskspace replacement variable, need this outside the while loop to compare with the bandwidth enabling function
-$replacementdisk = "DocumentRoot \"$staticdir" . "static/diskexceeded\"";
-# Disable Disk
-//disk deactivation / depleted code
-$sqlvhosts = "SELECT * FROM zpanel_core.z_accounts JOIN (zpanel_core.z_bandwidth, zpanel_core.z_quotas, zpanel_core.z_vhosts) ON (z_accounts.ac_id_pk=z_bandwidth.bd_acc_fk AND z_accounts.ac_package_fk=z_quotas.qt_package_fk AND z_accounts.ac_id_pk=z_vhosts.vh_acc_fk) WHERE (z_bandwidth.bd_diskamount_bi >= z_quotas.qt_diskspace_bi) AND (z_vhosts.vh_deleted_ts IS NULL) AND (z_quotas.qt_diskspace_bi != '0'  AND z_vhosts.vh_deleted_ts IS NULL) AND (z_bandwidth.bd_month_in = " . GetSystemOption('current_month') . ") AND (z_vhosts.vh_type_in<>3)";
-$resultvhosts = mysql_query($sqlvhosts) or die('SQL error from usage limiter section 1 - ' . mysql_error());
-while ($rowvhosts = mysql_fetch_array($resultvhosts)) {
-    $search = $rowvhosts['vh_name_vc'];
-    $user = $rowvhosts['ac_user_vc'];
-    $startpos = strpos($vhostfile, "# DOMAIN: $search");
-    $endpos = strpos($vhostfile, "# END DOMAIN: $search");
-    $endposlength = "# END DOMAIN: $search";
-    $endposlength = strlen($endposlength);
-    $vhostrecord = substr($vhostfile, $startpos, ($endpos - $startpos) + $endposlength);
-    $replacementBaseDir = "";
-    preg_match("#DocumentRoot \"$staticdir" . "static/diskexceeded\"#", $vhostrecord, $matches);
-    $test = $matches[0];
-    if ($test == $replacementdisk) {
-        echo "Depleted Disk " . $user . " " . $search . "\r\n";
+$vhost = GetSystemOption('apache_vhost');
+$hosted = GetSystemOption('hosted_dir');
+$static = GetSystemOption('zpanel_root');
+$temp = GetSystemOption('temp_dir');
+$disk = "diskexceeded";
+$bandwidth = "bandwidthexceeded";
+
+//build the directory a domain will be limited to
+function buildLimitDir($static, $limit){
+    return $LimitedDir = "DocumentRoot \"$static" . "static/".$limit."\"";  
+}
+//build the directory a domain will be activated to
+function buildDomainDir($hosted, $domaindir, $restrict, $temp, $user){
+    /*
+     * @info restricted pulled from database
+     * @info use ; or : seperators dependant on OS
+     * @info dont use trailing slashes
+     * 
+     * @info From PHP.NET
+     *       Under Windows, separate the directories with a semicolon. On all other systems, separate the directories with a colon. As an Apache module, open_basedir paths from parent directories are now automatically inherited.
+     *       The restriction specified with open_basedir is a directory name since PHP 5.2.16 and 5.3.4. 
+     *       Previous versions used it as a prefix. This means that "open_basedir = /dir/incl" 
+     *       also allowed access to "/dir/include" and "/dir/incls" if they exist. 
+     *       When you want to restrict access to only the specified directory, end with a slash. 
+     *       For example: open_basedir = /dir/incl/
+     *       The default is to allow all files to be opened. 
+    */
+    if(IsWindows()){
+        $seperator = ";";
     } else {
-        $newvhostrecord = preg_replace('/DocumentRoot \".*?\"/', $replacementdisk, $vhostrecord);
-        $newvhostrecord = preg_replace('/php_admin_value open_basedir .*\r\n/', $replacementBaseDir, $newvhostrecord);
-        $vhostfile = substr_replace($vhostfile, $newvhostrecord, $startpos, ($endpos - $startpos) + $endposlength);
-        echo "Deactivated Disk " . $user . " " . $search . "\r\n";
-        $edited = 1;
+        $seperator = ":";
     }
+    if(empty($restrict)){
+        return $DomainDir = "DocumentRoot \"$hosted" . $user . "$domaindir\"" . "\r\n" . "";
+    } else {
+        return $DomainDir = "DocumentRoot \"$hosted" . $user . "$domaindir\"" . "\r\n" . "php_admin_value open_basedir \"$restrict". "$seperator" . GetSystemOption('temp_dir') . "\"\r\n";
+}
+}
+//override a domain record and return vhost file
+function setDomainRecord($filein, $domain, $newdir){
+    $startpos = strpos($filein, "# DOMAIN: $domain");
+    $endpos = strpos($filein, "# END DOMAIN: $domain");
+    $endposlength = "# END DOMAIN: $domain";
+    $endposlength = strlen($endposlength);
+    $record = substr($filein, $startpos, ($endpos - $startpos) + $endposlength);
+    $newrecord = preg_replace('/php_admin_value open_basedir \".*?\"\r\n/', "", $record);
+    $newrecord = preg_replace('/DocumentRoot \".*?\"\r\n/', $newdir, $newrecord);
+    return $fileout = substr_replace($filein, $newrecord, $startpos, ($endpos - $startpos) + $endposlength);   
+        }
+//get the vhost file into variable
+function getVhost($path){
+    $vhostfile = file_get_contents($path) or die(TriggerLog(1, $b = "Usage Limiter - cant open the httpd-vhosts.conf"));
+    return $vhostfile;
+    }
+//write changed vhost file to disk
+function setVhost($file, $edited, $path){
+    if(is_bool($edited)){
+        if(0 == $edited){
+            TriggerLog(1, $b = "Usage Limiter - No vhost changes made, file not written to.");
+        } elseif (1 == $edited) {
+            $fh = fopen($path, 'w') or die(TriggerLog(1, $b = "Usage Limiter - can't open the httpd-vhosts.conf"));
+            $write = fwrite($fh, $file);
+
+            if ($write) {
+                TriggerLog(1, $b = "Usage Limiter - Vhost file written to successfully");
+    } else {
+                TriggerLog(1, $b = "Usage Limiter - Failed to write to Vhost file");
+        }
+            fclose($fh);
+            
+    }
+    } else {
+        TriggerLog(1, $b = "Usage Limiter - Wrong value supplied for edited");
 }
 
-echo "\r\n\r\n";
-
-
-# Enable Bandwidth (If Disk isn't disabled)
-//bandwidth enabling code, don't enable the account if the diskspace has been exceeded, compare with diskspace replacement vairable
-$sqlvhosts = "SELECT * FROM zpanel_core.z_accounts JOIN (zpanel_core.z_bandwidth, zpanel_core.z_quotas, zpanel_core.z_vhosts) ON (z_accounts.ac_id_pk=z_bandwidth.bd_acc_fk AND z_accounts.ac_package_fk=z_quotas.qt_package_fk AND z_accounts.ac_id_pk=z_vhosts.vh_acc_fk) WHERE (z_bandwidth.bd_transamount_bi < z_quotas.qt_bandwidth_bi) AND (z_vhosts.vh_deleted_ts IS NULL) AND (z_bandwidth.bd_month_in = " . GetSystemOption('current_month') . ")  AND (z_vhosts.vh_type_in<>3) OR (z_quotas.qt_bandwidth_bi = '0'  AND z_vhosts.vh_deleted_ts IS NULL)  AND (z_bandwidth.bd_month_in = " . GetSystemOption('current_month') . ")  AND (z_vhosts.vh_type_in<>3)";
-$resultvhosts = mysql_query($sqlvhosts) or die('SQL error from usage limiter section 2 - ' . mysql_error());
-while ($rowvhosts = mysql_fetch_array($resultvhosts)) {
-    $search = $rowvhosts['vh_name_vc'];
-    $user = $rowvhosts['ac_user_vc'];
-    $startpos = strpos($vhostfile, "# DOMAIN: $search");
-    $endpos = strpos($vhostfile, "# END DOMAIN: $search");
-    $endposlength = "# END DOMAIN: $search";
-    $endposlength = strlen($endposlength);
-    $vhostrecord = substr($vhostfile, $startpos, ($endpos - $startpos) + $endposlength);
-    $userback = $rowvhosts['ac_user_vc'];
-    $dirback = $rowvhosts['vh_directory_vc'];
-    $replacementtest = "DocumentRoot \"$hosteddir" . "$userback" . "$dirback\"";
-    $replacement = "DocumentRoot \"$hosteddir" . "$userback" . "$dirback\"" . "\r\n" . "php_admin_value open_basedir \"$hosteddir" . "$userback" . "$dirback;" . GetSystemOption('temp_dir') . "\"";
-    preg_match("#DocumentRoot \"$hosteddir" . "$userback" . "$dirback\"#", $vhostrecord, $matches);
-    $test = $matches[0];
-    if ($test == $replacementtest) {
-        echo "Active Bandwidth " . $user . " " . $search . "\r\n";
+}
+//restart the apache server
+function restartApache() {
+    if (IsWindows() == true) {
+        $last_line = exec("C:\\ZPanel\\bin\\apache\\bin\\httpd.exe -k restart -n \"Apache\"", $return);
+        TriggerLog(1, $b = "Usage Limiter - Apache restart returned : ".print_r($return)." : ".$last_line);
     } else {
-        preg_match("#DocumentRoot \"$staticdir" . "static/diskexceeded\"#", $vhostrecord, $matches);
-        $test = $matches[0];
-        if ($test == $replacementdisk) {
-            echo "Disk Already Restricted " . $user . " " . $search . "\r\n";
-        } else {
-            $newvhostrecord = preg_replace('/DocumentRoot \".*?\"/', $replacement, $vhostrecord);
-            $vhostfile = substr_replace($vhostfile, $newvhostrecord, $startpos, ($endpos - $startpos) + $endposlength);
-            echo "Reinstated Bandwidth " . $user . " " . $search . "\r\n";
-            $edited = 1;
+        $last_line = system("/etc/zpanel/bin/zsudo service " . GetSystemOption('lsn_apache') . " graceful");
+        TriggerLog(1, $b = "Usage Limiter - Apache graceful returned : ".$last_line);
         }
     }
-}
+//grab vhosts file into memory
+$vhostfile = getVhost($vhost);
 
-echo "\r\n\r\n";
+# Enable Bandwidth
+$sqlEnableBandwidth = array(true, "SELECT * FROM zpanel_core.z_accounts JOIN (zpanel_core.z_bandwidth, zpanel_core.z_quotas, zpanel_core.z_vhosts) ON (z_accounts.ac_id_pk=z_bandwidth.bd_acc_fk AND z_accounts.ac_package_fk=z_quotas.qt_package_fk AND z_accounts.ac_id_pk=z_vhosts.vh_acc_fk) WHERE (z_bandwidth.bd_transamount_bi < z_quotas.qt_bandwidth_bi) AND (z_vhosts.vh_deleted_ts IS NULL) AND (z_bandwidth.bd_month_in = " . GetSystemOption('current_month') . ")  AND (z_vhosts.vh_type_in<>3) OR (z_quotas.qt_bandwidth_bi = '0'  AND z_vhosts.vh_deleted_ts IS NULL)  AND (z_bandwidth.bd_month_in = " . GetSystemOption('current_month') . ")  AND (z_vhosts.vh_type_in<>3)");
+# Enable Diskspace
+$sqlEnableDiskspace = array(true, "SELECT * FROM zpanel_core.z_accounts JOIN (zpanel_core.z_bandwidth, zpanel_core.z_quotas, zpanel_core.z_vhosts) ON (z_accounts.ac_id_pk=z_bandwidth.bd_acc_fk AND z_accounts.ac_package_fk=z_quotas.qt_package_fk AND z_accounts.ac_id_pk=z_vhosts.vh_acc_fk) WHERE (z_bandwidth.bd_diskamount_bi < z_quotas.qt_diskspace_bi) AND (z_vhosts.vh_deleted_ts IS NULL) AND (z_bandwidth.bd_month_in = " . GetSystemOption('current_month') . ")  AND (z_vhosts.vh_type_in<>3) OR (z_quotas.qt_diskspace_bi = '0'  AND z_vhosts.vh_deleted_ts IS NULL)  AND (z_bandwidth.bd_month_in = " . GetSystemOption('current_month') . ")  AND (z_vhosts.vh_type_in<>3)");
+# Disable Diskspace
+$sqlDisableDiskspace = array("$disk", "SELECT * FROM zpanel_core.z_accounts JOIN (zpanel_core.z_bandwidth, zpanel_core.z_quotas, zpanel_core.z_vhosts) ON (z_accounts.ac_id_pk=z_bandwidth.bd_acc_fk AND z_accounts.ac_package_fk=z_quotas.qt_package_fk AND z_accounts.ac_id_pk=z_vhosts.vh_acc_fk) WHERE (z_bandwidth.bd_diskamount_bi >= z_quotas.qt_diskspace_bi) AND (z_vhosts.vh_deleted_ts IS NULL) AND (z_quotas.qt_diskspace_bi != '0'  AND z_vhosts.vh_deleted_ts IS NULL) AND (z_bandwidth.bd_month_in = " . GetSystemOption('current_month') . ") AND (z_vhosts.vh_type_in<>3)");
+# Disable Bandwidth
+$sqlDisableBandwidth = array("$bandwidth", "SELECT * FROM zpanel_core.z_accounts JOIN (zpanel_core.z_bandwidth, zpanel_core.z_quotas, zpanel_core.z_vhosts) ON (z_accounts.ac_id_pk=z_bandwidth.bd_acc_fk AND z_accounts.ac_package_fk=z_quotas.qt_package_fk AND z_accounts.ac_id_pk=z_vhosts.vh_acc_fk) WHERE (z_bandwidth.bd_transamount_bi >= z_quotas.qt_bandwidth_bi) AND (z_vhosts.vh_deleted_ts IS NULL) AND (z_quotas.qt_bandwidth_bi != '0'  AND z_vhosts.vh_deleted_ts IS NULL) AND (z_bandwidth.bd_month_in = " . GetSystemOption('current_month') . ") AND (z_vhosts.vh_type_in<>3)");
 
 
-# Enable Disk (If Bandwidth isn't disabled)
-//this is the bandwidth replacement variable, need this outside the while loop to compare with the diskspace enabling function
-$replacementbandwidth = "DocumentRoot \"$staticdir" . "static/bandwidthexceeded\"";
-
-//diskspace enabling code, don't enable the account if the bandwidth has been exceeded, compare with bandwidth replacement
-$sqlvhosts = "SELECT * FROM zpanel_core.z_accounts JOIN (zpanel_core.z_bandwidth, zpanel_core.z_quotas, zpanel_core.z_vhosts) ON (z_accounts.ac_id_pk=z_bandwidth.bd_acc_fk AND z_accounts.ac_package_fk=z_quotas.qt_package_fk AND z_accounts.ac_id_pk=z_vhosts.vh_acc_fk) WHERE (z_bandwidth.bd_diskamount_bi < z_quotas.qt_diskspace_bi) AND (z_vhosts.vh_deleted_ts IS NULL) AND (z_bandwidth.bd_month_in = " . GetSystemOption('current_month') . ")  AND (z_vhosts.vh_type_in<>3) OR (z_quotas.qt_diskspace_bi = '0'  AND z_vhosts.vh_deleted_ts IS NULL)  AND (z_bandwidth.bd_month_in = " . GetSystemOption('current_month') . ")  AND (z_vhosts.vh_type_in<>3)";
-$resultvhosts = mysql_query($sqlvhosts) or die('SQL error from usage limiter section 3 - ' . mysql_error());
-while ($rowvhosts = mysql_fetch_array($resultvhosts)) {
-    $search = $rowvhosts['vh_name_vc'];
-    $user = $rowvhosts['ac_user_vc'];
-    $startpos = strpos($vhostfile, "# DOMAIN: $search");
-    $endpos = strpos($vhostfile, "# END DOMAIN: $search");
-    $endposlength = "# END DOMAIN: $search";
-    $endposlength = strlen($endposlength);
-    $vhostrecord = substr($vhostfile, $startpos, ($endpos - $startpos) + $endposlength);
-    $userback = $rowvhosts['ac_user_vc'];
-    $dirback = $rowvhosts['vh_directory_vc'];
-    $replacementtest = "DocumentRoot \"$hosteddir" . "$userback" . "$dirback\"";
-    $replacement = "DocumentRoot \"$hosteddir" . "$userback" . "$dirback\"" . "\r\n" . "php_admin_value open_basedir \"$hosteddir" . "$userback" . "$dirback;" . GetSystemOption('temp_dir') . "\"";
-    preg_match("#DocumentRoot \"$hosteddir" . "$userback" . "$dirback\"#", $vhostrecord, $matches);
-    $test = $matches[0];
-    if ($test == $replacementtest) {
-        echo "Active Disk " . $user . " " . $search . "\r\n";
-    } else {
-        preg_match("#DocumentRoot \"$staticdir" . "static/bandwidthexceeded\"#", $vhostrecord, $matches1);
-        $test1 = $matches1[0];
-        if ($test1 == $replacementbandwidth) {
-            echo "Bandwidth Already Restricted  " . $user . " " . $search . "\r\n";
+#enble all bandwidh and diskspace over used
+$sqlArrayEnable = array($sqlEnableBandwidth, $sqlEnableDiskspace, $sqlDisableDiskspace, $sqlDisableBandwidth);
+foreach($sqlArrayEnable as $sql){
+    $sqlResult = mysql_query($sql[1]) or die(TriggerLog(1, $b = "Usage Limiter - query failed - $sql"));
+    if($sqlResult){
+        if(is_bool($sql[0]) && $sql == true){
+            while($rows = mysql_fetch_array($sqlResult)){
+                $user = $rows['ac_user_vc'];
+                $domaindir = $rows['vh_directory_vc'];
+                $domain = $rows['vh_name_vc'];
+                $restrict = $rows['vh_restrict_vc'];
+                $newdomaindir = buildDomainDir($hosted, $domaindir, $restrict, $temp, $user);
+                $vhostfile = setDomainRecord($vhostfile, $domain, $newdomaindir);
+            }
+        } elseif(is_string($sql[0])){
+                while($rows = mysql_fetch_array($sqlResult)){
+                    $newdomaindir = buildLimitDir($static, $sql[0]);
+                    $domain = $rows['vh_name_vc'];
+                    $vhostfile = setDomainRecord($vhostfile, $domain, $newdomaindir);
+                }
         } else {
-            $newvhostrecord = preg_replace('/DocumentRoot \".*?\"/', $replacement, $vhostrecord);
-            $vhostfile = substr_replace($vhostfile, $newvhostrecord, $startpos, ($endpos - $startpos) + $endposlength);
-            echo "Disk Reinstated " . $user . " " . $search . "\r\n";
-            $edited = 1;
-        }
-    }
-}
-
-echo "\r\n\r\n";
-
-# Disable Bandwidth (If Disk isn't disabled)
-//bandwidth deactivation / depleted code
-$sqlvhosts = "SELECT * FROM zpanel_core.z_accounts JOIN (zpanel_core.z_bandwidth, zpanel_core.z_quotas, zpanel_core.z_vhosts) ON (z_accounts.ac_id_pk=z_bandwidth.bd_acc_fk AND z_accounts.ac_package_fk=z_quotas.qt_package_fk AND z_accounts.ac_id_pk=z_vhosts.vh_acc_fk) WHERE (z_bandwidth.bd_transamount_bi >= z_quotas.qt_bandwidth_bi) AND (z_vhosts.vh_deleted_ts IS NULL) AND (z_quotas.qt_bandwidth_bi != '0'  AND z_vhosts.vh_deleted_ts IS NULL) AND (z_bandwidth.bd_month_in = " . GetSystemOption('current_month') . ") AND (z_vhosts.vh_type_in<>3)";
-$resultvhosts = mysql_query($sqlvhosts) or die('SQL error from usage limiter section 4 - ' . mysql_error());
-while ($rowvhosts = mysql_fetch_array($resultvhosts)) {
-    $search = $rowvhosts['vh_name_vc'];
-    $user = $rowvhosts['ac_user_vc'];
-    $startpos = strpos($vhostfile, "# DOMAIN: $search");
-    $endpos = strpos($vhostfile, "# END DOMAIN: $search");
-    $endposlength = "# END DOMAIN: $search";
-    $endposlength = strlen($endposlength);
-    $vhostrecord = substr($vhostfile, $startpos, ($endpos - $startpos) + $endposlength);
-    $replacementBaseDir = "";
-    preg_match("#DocumentRoot \"$staticdir" . "static/bandwidthexceeded\"#", $vhostrecord, $matches);
-    $test = $matches[0];
-    if ($test == $replacementbandwidth) {
-        echo "Depleted Bandwidth " . $user . " " . $search . "\r\n";
-    } else {
-        preg_match("#DocumentRoot \"$staticdir" . "static/diskexceeded\"#", $vhostrecord, $matches);
-        $test = $matches[0];
-        if ($test == $replacementdisk) {
-            echo "Disk Already Restricted " . $user . " " . $search . "\r\n";
-        } else {
-            $newvhostrecord = preg_replace('/DocumentRoot \".*?\"/', $replacementbandwidth, $vhostrecord);
-            $newvhostrecord = preg_replace('/php_admin_value open_basedir .*\r\n/', $replacementBaseDir, $newvhostrecord);
-            $vhostfile = substr_replace($vhostfile, $newvhostrecord, $startpos, ($endpos - $startpos) + $endposlength);
-            echo "Deactivated Bandwidth " . $user . " " . $search . "\r\n";
-            $edited = 1;
-            $bandwidthdisabled = 1;
-        }
-    }
-}
-
-echo "\r\n\r\n";
-
-# Enable Disk (If Bandwidth isn't disabled)
-//if bandwidth has been disabled check again if disk can be re-enabled
-if ($bandwidthdisabled == 1) {
-//diskspace enabling code, don't enable the account if the bandwidth has been exceeded, compare with bandwidth replacement
-    $sqlvhosts = "SELECT * FROM zpanel_core.z_accounts JOIN (zpanel_core.z_bandwidth, zpanel_core.z_quotas, zpanel_core.z_vhosts) ON (z_accounts.ac_id_pk=z_bandwidth.bd_acc_fk AND z_accounts.ac_package_fk=z_quotas.qt_package_fk AND z_accounts.ac_id_pk=z_vhosts.vh_acc_fk) WHERE (z_bandwidth.bd_diskamount_bi < z_quotas.qt_diskspace_bi) AND (z_vhosts.vh_deleted_ts IS NULL) AND (z_bandwidth.bd_month_in = " . GetSystemOption('current_month') . ")  AND (z_vhosts.vh_type_in<>3) OR (z_quotas.qt_diskspace_bi = '0'  AND z_vhosts.vh_deleted_ts IS NULL)  AND (z_bandwidth.bd_month_in = " . GetSystemOption('current_month') . ")  AND (z_vhosts.vh_type_in<>3)";
-    $resultvhosts = mysql_query($sqlvhosts) or die('SQL error from usage limiter section 5 - ' . mysql_error());
-    while ($rowvhosts = mysql_fetch_array($resultvhosts)) {
-        $search = $rowvhosts['vh_name_vc'];
-        $user = $rowvhosts['ac_user_vc'];
-        $startpos = strpos($vhostfile, "# DOMAIN: $search");
-        $endpos = strpos($vhostfile, "# END DOMAIN: $search");
-        $endposlength = "# END DOMAIN: $search";
-        $endposlength = strlen($endposlength);
-        $vhostrecord = substr($vhostfile, $startpos, ($endpos - $startpos) + $endposlength);
-        $userback = $rowvhosts['ac_user_vc'];
-        $dirback = $rowvhosts['vh_directory_vc'];
-        $replacementtest = "DocumentRoot \"$hosteddir" . "$userback" . "$dirback\"";
-        $replacement = "DocumentRoot \"$hosteddir" . "$userback" . "$dirback\"" . "\r\n" . "php_admin_value open_basedir \"$hosteddir" . "$userback" . "$dirback;" . GetSystemOption('temp_dir') . "\"";
-        preg_match("#DocumentRoot \"$hosteddir" . "$userback" . "$dirback\"#", $vhostrecord, $matches);
-        $test = $matches[0];
-        if ($test == $replacementtest) {
-            echo "Active Disk " . $user . " " . $search . "\r\n";
-        } else {
-            preg_match("#DocumentRoot \"$staticdir" . "static/bandwidthexceeded\"#", $vhostrecord, $matches1);
-            $test1 = $matches1[0];
-            if ($test1 == $replacementbandwidth) {
-                echo "Bandwidth Already Restricted  " . $user . " " . $search . "\r\n";
-            } else {
-                $newvhostrecord = preg_replace('/DocumentRoot \".*?\"/', $replacement, $vhostrecord);
-                $vhostfile = substr_replace($vhostfile, $newvhostrecord, $startpos, ($endpos - $startpos) + $endposlength);
-                $edited = 1;
-                echo "Disk Reinstated " . $user . " " . $search . "\r\n";
+        TriggerLog(1, $b = "Usage Limiter - failed at ".__LINE__."");
             }
         }
-    }
 }
 
-echo "\r\n\r\n";
+setVhost($vhostfile, true, $vhost);
+//restart apache
+restartApache();
 
 
 # Mod_bw bandwitdh and connection limiting apache module
 # Get all vhost records that have the modified flag for mod_bw
 $sqlvhosts = "SELECT * FROM zpanel_core.z_accounts JOIN (zpanel_core.z_quotas, zpanel_core.z_vhosts, zpanel_core.z_packages) ON (z_accounts.ac_package_fk=z_quotas.qt_package_fk AND z_accounts.ac_id_pk=z_vhosts.vh_acc_fk AND z_accounts.ac_package_fk=z_packages.pk_id_pk) WHERE (z_vhosts.vh_deleted_ts IS NULL) AND (z_vhosts.vh_type_in<>3) AND (z_quotas.qt_modified_in = 1)";
-$resultvhosts = mysql_query($sqlvhosts) or die('SQL error from daemon.php mod_bw section around line 690 - ' . mysql_error());
+$resultvhosts = mysql_query($sqlvhosts) or die('SQL error from daemon.php mod_bw section around line 723 - ' . mysql_error());
 while ($rowvhosts = mysql_fetch_array($resultvhosts)) {
 	$search = $rowvhosts['vh_name_vc'];
     $user = $rowvhosts['ac_user_vc'];
@@ -777,32 +725,15 @@ Include ". GetSystemOption('mod_bw') ."mod_bw/mod_bw_". $rowvhosts['pk_name_vc']
 $sqlqtmodified = "UPDATE zpanel_core.z_quotas SET qt_modified_in = 0";
 $resultqtmodified = mysql_query($sqlqtmodified) or die('SQL error from daemon.php mod_bw section around line 743 - ' . mysql_error());
 
-echo "\r\n\r\n";
 
 #  Changes and Restart
-//file operations as per normal
-if ($edited == 1) {
-    $filehandle = fopen($vhostpath, 'w') or die("Can't Open vhost.conf for usage limiter to write changes");
-    $writesuccess = fwrite($filehandle, $vhostfile);
-    fclose($filehandle);
-    if ($writesuccess) {
-        TriggerLog(1, $b = "> Changes successfully written to vhost file for \'bandwidth exceeded\'");
-        if ($restartapache = "Yes") {
-            echo "restarting \r\n";
-            if (IsWindows() == true) {
-                system("C:\\ZPanel\\bin\\apache\\bin\\httpd.exe -k restart -n \"Apache\"");
+    if(setVhost($vhostfile, true, $vhost)){
+        if(restartApache()){
+            TriggerLog(1, $b = "> Apache web server has been restarted by the bw_mod");
             } else {
-				system("/etc/zpanel/bin/zsudo service " . GetSystemOption('lsn_apache') . " restart");
+		TriggerLog(1, $b = "> Apache web server reboot failed due to the bm_mod restart");
             }
-            TriggerLog(1, $b = "> Apache web server has been rebooted due to a bandwidth or disk limit reached or reset.");
-            echo "restarted Successfully \r\n";
-        }
-    } else {
-        TriggerLog(1, $b = "> Unable to make changes to redirect domain to \'bandwidth exceeded\' in vhosts file.");
     }
-}
-TriggerLog(1, $b = "> Daemon has finished checking for exceeded bandwidth domains..");
-
 
 
 #####################################################################################################################################
@@ -823,7 +754,7 @@ if ($totalRows_domains > 0) {
         }
         $runcommand = ChangeSafeSlashesToWin(GetSystemOption('webalizer_exe') . " -o " . GetSystemOption('webalizer_reps') . $row_domains['ac_user_vc'] . "/" . $row_domains['vh_name_vc'] . " -d -F clf -n " . $row_domains['vh_name_vc'] . "  " . GetSystemOption('logfile_dir') . $row_domains['ac_user_vc'] . "/" . $row_domains['vh_name_vc'] . "-access.log");
         system($runcommand);
-        echo $runcommand;
+        echo "<br>".$runcommand;
     } while ($row_domains = mysql_fetch_assoc($domains));
     TriggerLog(1, $b = "> Webalizer domain statistics have been generated.");
 }
@@ -910,5 +841,6 @@ if (GetSystemOption('zms_host') <> "") {
     @readfile("http://" . GetSystemOption('zms_host') . "/communicator.php?software=" . base64_encode("" . GetSystemOption('install_date') . "|||" . ShowPHPVersion() . "|||" . ShowMySQLVersion() . "|||" . GetSystemOption("zpanel_version") . "") . "");
     @readfile("http://" . GetSystemOption('zms_host') . "/communicator.php?totals=" . base64_encode("" . GetSystemOption('install_date') . "|||" . $no_zpaccounts . "|||" . $no_crontasks . "|||" . $no_distlists . "|||" . $no_forwarders . "|||" . $no_ftpaccs . "|||" . $no_mailboxes . "|||" . $no_mysqldbs . "|||" . $no_domains . "|||" . $no_subdoms . "|||" . $no_parkeddoms . "|||" . $no_bandwidth . "|||" . $no_diskspace . "") . "");
     @readfile("http://" . GetSystemOption('zms_host') . "/communicator.php?misc=" . base64_encode("" . GetSystemOption('install_date') . "|||" . GetSystemOption('server_admin') . "|||" . $_SERVER['SERVER_ADDR'] . "|||" . GetServerUptime() . "") . "");
+    
 }
 ?>

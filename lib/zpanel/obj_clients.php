@@ -142,7 +142,7 @@ if ($_POST['inAction'] == 'new') {
         if ($_POST['inEmailAddress'] != '') {
             include("lang/" . GetSystemOption('zpanel_lang') . ".php");
             $messagesubject = $lang['225'];
-            $messagebody = $lang['224'];
+            $messagebody = GetSystemOption('zpanel_welcome');
             $messagebody = str_replace("{{username}}", $username, $messagebody);
             $messagebody = str_replace("{{password}}", $_POST['inPassword'], $messagebody);
             $messagebody = str_replace("{{fullname}}", $_POST['inFullName'], $messagebody);

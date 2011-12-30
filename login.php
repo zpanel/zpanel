@@ -29,6 +29,7 @@ include('conf/zcnf.php');
 include('inc/zDataExchange.php');
 include('inc/zCoreFunctions.php');
 include('lang/' . GetSystemOption('zpanel_lang') . '.php');
+$lockdown_option = GetSystemOption('zpanel_lockdown');
 
 # If the login process has been initiated then lets check the login!
 if (isset($_SESSION['zUserID'])) {
@@ -49,7 +50,6 @@ if (isset($_SESSION['zUserID'])) {
         $sql = "SELECT ac_id_pk, ac_user_vc FROM z_accounts WHERE ac_user_vc='" . $username . "' AND ac_pass_vc='" . md5($password) . "' AND ac_deleted_ts IS NULL";
         $checklogin = DataExchange("l", $z_db_name, $sql);
         $accountexists = DataExchange("t", $z_db_name, $sql);
-        $lockdown_option = GetSystemOption('zpanel_lockdown');
         $_SESSION['zUsername'] = $checklogin['ac_user_vc'];
         $_SESSION['zUserID'] = $checklogin['ac_id_pk'];
         include('inc/zAccountDetails.php');
@@ -141,7 +141,18 @@ if (isset($_SESSION['zUserID'])) {
             .login_panel {
                 background-color: #FFF;
             }
-
+            .login_lockdown {
+                <?php
+                if($lockdown_option == 1){
+                    echo "display: block;\r\nvisibility: visible;\r\n";
+                } else {
+                    echo "display: none;\r\nvisibility: hidden;\r\n";
+                }
+                ?>
+             color: #ff0000;
+             text-align: center;
+             font-weight: bold;
+            }
             -->
         </style></head>
     <body>

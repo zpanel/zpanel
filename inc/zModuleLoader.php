@@ -28,12 +28,16 @@ include('conf/zcnf.php');
 $path = GetSystemOption('zpanel_root') . 'modules';
 $coldisplay = GetSystemOption('module_icons_pr');
 $dir = opendir($path);
+$dirFiles = array();
 while ($file = readdir($dir)) {
     if ($file != "." && $file != "..") {
         $dirFiles[] = $file;
     }
-}closedir($dir);
-sort($dirFiles);
+}
+closedir($dir);
+$dirFilesSorted = '';
+$dirFilesSorted = sort($dirFiles, SORT_REGULAR);
+
 foreach ($dirFiles as $file) {
     $colcount = 1;
     if (is_dir($path . '/' . $file)) {
@@ -43,8 +47,8 @@ foreach ($dirFiles as $file) {
                 if (CheckModuleCatForPerms($thiscat['level_required'], $permissionset) == 1) {
                     echo "<table class=\"zmodule\">\n<tr>\n<th align=\"left\"><a name=\"" . $file . "\"></a>" . $thiscat['title'] . "<a href=\"#\" class=\"zmodule\" id=\"zmodule_" . $file . "_a\"></a></th>\n</tr>\n";
                     echo "<tr>\n<td align=\"left\">\n<div class=\"zmodule_" . $file . "\" id=\"zmodule_" . $file . "\">\n<table class=\"zmodulecontent\" align=\"left\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\">\n<tr>\n<td>\n";
-                    $moddir = opendir($path . '/' . $file);
-                    while ($modfile = readdir($moddir)) {
+                    $modfilearray = scandir($path . '/' . $file);
+                    foreach ($modfilearray as $modfile) {
                         if (is_dir($path . '/' . $file . '/' . $modfile)) {
                             if (file_exists($path . '/' . $file . '/' . $modfile . '/modinfo.zp.php')) {
                                 require_once($path . '/' . $file . '/' . $modfile . '/modinfo.zp.php');

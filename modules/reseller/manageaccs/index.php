@@ -58,6 +58,7 @@ if ($totalclients > 0) {
                 <th><?php echo $lang['111']; ?></th>
                 <th><?php echo $lang['112']; ?></th>
                 <th>&nbsp;</th>
+                <th>&nbsp;</th>
             </tr>
             <?php
             do {
@@ -76,6 +77,13 @@ if ($totalclients > 0) {
                             <input type="submit" name="inDelete_<?php echo $rowclients['ac_id_pk']; ?>" id="inDelete_<?php echo $rowclients['ac_id_pk']; ?>" value="<?php echo $lang['84']; ?>" />
         <?php } ?>
                     </td>
+                    <td>
+                        <?php if($rowclients['ac_id_pk'] != 2) { ?>
+                        <form action="runner.php?load=obj_shadow" method="post" name="frmShadow" id="frmShadow">
+                        <input type="submit" name="inShadow_<?php echo $rowclients['ac_id_pk']; ?>" id="inShadow_<?php echo $rowclients['ac_id_pk']; ?>" value="<?php echo $lang['236']; ?>" />
+                        </form>
+                        <?php } ?>
+                        </td>
                 </tr>
     <?php } while ($rowclients = mysql_fetch_assoc($listclients)); ?>
         </table>

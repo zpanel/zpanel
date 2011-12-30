@@ -46,7 +46,7 @@ do {
     			<td><input type=\"text\" name=\"" . $rowoptions['st_name_vc'] . "\" value=\"" . $rowoptions['st_value_tx'] . "\"></td>
   		</tr>";
 } while ($rowoptions = mysql_fetch_assoc($listoptions));
-echo "<tr><td ><input type=\"hidden\" name=\"inReturn\" value=\"" . GetFullURL() . "\"><input type=\"submit\" name=\"inSaveSystem\"value=\"" . $lang['18'] . "\"></td><td></td></tr>";
+echo "<tr><td><input type=\"hidden\" name=\"inReturn\" value=\"" . GetFullURL() . "\"><input type=\"submit\" name=\"inSaveSystem\"value=\"" . $lang['18'] . "\"></td><td></td></tr>";
 echo "</table></form>";
 echo "<br><h2>" . $lang['199'] . "</h2>";
 echo "<form action=\"runner.php?load=obj_zpconfig\" method=\"post\" name=\"frmZPConfig\" id=\"frmZPConfig\">";
@@ -98,3 +98,14 @@ echo "</select></td></tr>";
 echo "<tr><td ><input type=\"hidden\" name=\"inReturn\" value=\"" . GetFullURL() . "\"><input type=\"submit\" name=\"inSaveTemplate\"value=\"" . $lang['18'] . "\"></td><td></td></tr>";
 echo "</table></form>";
 ?>
+<h2><?php echo $lang['422']; ?></h2>
+    <form method="post" action="runner.php?load=obj_zpconfig" name="ZPWelcomeMessage" id="ZPWelcomeMessage">
+        <table class="zgrid">
+            <tr>
+                <td>
+                    <textarea cols="55" rows="10" id="inWelcome" name="inWelcome"><?php echo GetSystemOption('zpanel_welcome'); ?></textarea>
+                </td>
+            </tr>
+            <tr><td><input type="hidden" name="inReturn" value="<?php echo GetFullURL(); ?>"><input type="submit" name="inSaveWelcome" value="<?php echo $lang['18']; ?>"></td></tr>
+        </table>
+    </form>

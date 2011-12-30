@@ -32,7 +32,7 @@ $conpass = Cleaner("i", $_POST['inConPass']);
 $doresetmysql = Cleaner("i", $_POST['inResMySQL']);
 $returnurl = $_POST['inReturnURL'];
 
-if (md5($current_pass) <> $useraccount['ac_pass_vc']) {
+if (md5($current_pass) <> $useraccount['ac_pass_vc'] || (empty($newpass))) {
     # Current password does not match!
     $endonerror = "&r=error";
 } else {

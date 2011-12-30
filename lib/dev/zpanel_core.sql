@@ -574,6 +574,7 @@ CREATE TABLE IF NOT EXISTS `z_vhosts` (
   `vh_acc_fk` int(6) DEFAULT NULL,
   `vh_name_vc` varchar(255) DEFAULT NULL,
   `vh_directory_vc` varchar(255) DEFAULT NULL,
+  `vh_restrict_vc` varchar(255) DEFAULT NULL,
   `vh_type_in` int(1) DEFAULT '1',
   `vh_active_in` int(1) DEFAULT '0',
   `vh_created_ts` int(30) DEFAULT NULL,

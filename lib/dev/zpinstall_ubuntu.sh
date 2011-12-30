@@ -149,9 +149,11 @@ read domain
 zpassword=$(</dev/urandom tr -dc A-Za-z0-9 | head -c6)
 password=$(</dev/urandom tr -dc A-Za-z0-9 | head -c8)
 echo "SET PASSWORD FOR root@localhost=PASSWORD('${password}');" |mysql -uroot -p${defaultpassword} -hlocalhost
-echo "update z_accounts set ac_pass_vc=MD5('${zpassword}') where ac_user_vc='zadmin';" |mysql -uroot -p${password} -hlocalhost zpanel_core
-echo "update z_personal set ap_fullname_vc='${firstname} ${lastname}' where ap_id_pk='2';" |mysql -uroot -p${password} -hlocalhost zpanel_core
-echo "update z_personal set ap_email_vc='${email}' where ap_id_pk='2';" |mysql -uroot -p${password} -hlocalhost zpanel_core
+echo "update z_accounts set ac_pass_vc=MD5('${zpassword}') where ac_user_vc='zadmin';" |mysql -u root -p ${password} -h localhost zpanel_core
+echo "update z_personal set ap_fullname_vc='${firstname} ${lastname}' where ap_id_pk='2';" |mysql -u root -p ${password} -h localhost zpanel_core
+echo "update z_personal set ap_email_vc='${email}' where ap_id_pk='2';" |mysql -u root -p ${password} -h localhost zpanel_core
+echo "CREATE USER `zadmin`@`%`;" |mysql -u root -p ${password} -h localhost
+echo "GRANT USAGE ON * . * TO `zadmin`@`%`;" |mysql -u root -p ${password} -h localhost
 
 # Add a cron task to run deamon every 60 mins...
 touch /etc/cron.d/zdaemon
