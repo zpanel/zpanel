@@ -137,6 +137,7 @@ function zapi_ftpaccount_add($filezilla_root, $username, $password, $zp_version,
 # Edit a FileZilla FTP Account
 
 function zapi_ftpaccount_edit($filezilla_root, $username, $newpassword) {
+    if (ShowServerPlatform() == "Windows") {
     # Reset the account password for the FTP account!
     $filezilla_reload = "\"" . $filezilla_root . "FileZilla server.exe\" /reload-config";
     $fzpath = $filezilla_root . "FileZilla Server.xml";
@@ -156,6 +157,37 @@ function zapi_ftpaccount_edit($filezilla_root, $username, $newpassword) {
         return true;
     }
     fclose($filehandle);
+    } else {
+        # Server is POSIX based - Lets use ProFTPd
+        $proftpd_config = "/etc/zpanel/conf/ftp/zftpd.passwd";
+        $auto_salt = GenerateRandomPassword(8);
+        $ftp_password = crypt($newpassword, '$1$' . $auto_salt . '$');
+        $filein = file_get_contents($proftpd_config);
+        $startpos = strpos($filein, "# USER:" . $username . "");
+        $endpos = strpos($filein, "# END USER:" . $username . "");
+        $endposlength = "# END USER:" . $username . "";
+        $endposlength = strlen($endposlength);
+        
+        $record = substr($filein, $startpos, ($endpos - $startpos) + $endposlength);
+        
+        $split = explode(":1010:1010::", $record);
+        $split1 = explode($username . ":", $split[0]);
+        $split1[1] = $ftp_password;
+        
+        $newrecord = $split1[0] . " " . $username . ":" . $split1[1] . ":1010:1010::" . $split[1];
+        $fileout = substr_replace($filein, $newrecord, $startpos, ($endpos - $startpos) + $endposlength);
+        
+        $fh = fopen($proftpd_config, 'w') or die(TriggerLog(1, $b = "zpanel_kernel - cant open proftp config"));
+        $write = fwrite($fh, $fileout);
+
+            if ($write) {
+                TriggerLog(1, $b = "zpanel_kernel - write to proftp config successful");
+    } else {
+                TriggerLog(1, $b = "zpanel_kernel - write to proftp config FAILED");
+}
+            fclose($fh);
+
+    }
 }
 
 # Remove a FileZilla FTP Account
