@@ -166,7 +166,7 @@ if (isset($_SESSION['zUserID'])) {
                 </td>
             </tr>
             <tr>
-                <td class="poweredbox"><p><strong>Powered by and Modified by DVSBA <a href="http://www.zpanelcp.com/" target="_blank" title="ZPanel - Taking hosting to the next level!">ZPanel</a></strong><br>
+                <td class="poweredbox"><p><strong>Powered by <a href="http://www.zpanelcp.com/" target="_blank" title="ZPanel - Taking hosting to the next level!">ZPanel</a></strong><br>
                         This server is running: ZPanel <?php echo GetSystemOption('zpanel_version'); ?>
                         <br>
                     </p></td>
